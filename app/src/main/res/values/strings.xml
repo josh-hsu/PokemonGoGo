@@ -1,3 +1,42 @@
 <resources>
     <string name="app_name">Pokemon Go Go</string>
+    <string name="activate">Start Service</string>
+    <string name="deactivate">Stop Service</string>
+    <string name="bugreport">Bug/Suggestion Report</string>
+    <string name="settings">Settings</string>
+    <string name="settings_title">Seven Knights Game Settings</string>
+    <string name="settings_skill_title">Seven Knights Skill Settings</string>
+    <string name="banner_ad_unit_id">ca-app-pub-6206997118305400/3415399173</string>
+    <string name="google_app_id">mu774-cdbb9</string>
+
+    <!-- Start up dialog -->
+    <string name="startup_title">Permissive SELinux</string>
+    <string name="startup_text">In order to use this app, we need to set SEPolicy to permissive.
+        Enabling permissive SEPolicy allows this APP to use whole file system. Do this at your own risk.</string>
+    <string name="startup_confirm">Proceed</string>
+    <string name="startup_cancel">Cancel</string>
+    <string name="startup_cancel_warn">Warning</string>
+    <string name="startup_cancel_warntext">You didn\'t permit the permissive SEPolicy request.</string>
+    <string name="startup_cancel_exit">Exit</string>
+    <string name="startup_permit_system_alarm">Please allow to draw on screen permission.</string>
+    <string name="startup_permit_system_alarm_failed">No permission, this App will not run.</string>
+    <string name="startup_display_ok">We support your display size: </string>
+    <string name="startup_display_not_ok">We don\'t support your display size: </string>
+    <string name="startup_display_not_ok_help">You can visit https://github.com/josh-hsu/MU774 to help us supporting your display</string>
+
+    <!-- PointSelectionActivity -->
+    <string name="default_point_info">Point info will show in here</string>
+    <string name="title_activity_point_selection">Point Selection</string>
+
+    <!-- HeadService -->
+    <string name="headservice_how_to_stop">Service started, you can long press the icon to stop it.</string>
+    <string name="headservice_stop_title">Stop Service</string>
+    <string name="headservice_stop_info">Are you sure you want to stop MU774 service?</string>
+    <string name="headservice_stop_button">Stop</string>
+
+    <!-- Preferences -->
+    <string name="stage_1">Normal Battle</string>
+    <string name="stage_2">Golden House</string>
+    <string name="stage_3">Dragon (Not ready)</string>
+    <string name="stage_4">Arena (Not ready)</string>
 </resources>

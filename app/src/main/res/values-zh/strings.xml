@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MU774</string>
+    <string name="activate">啟動服務</string>
+    <string name="deactivate">停止服務</string>
+    <string name="bugreport">建議/錯誤回報</string>
+    <string name="settings">設定</string>
+    <string name="settings_title">MU774設定工具</string>
+    <string name="settings_skill_title">技能設定</string>
+    <string name="banner_ad_unit_id">ca-app-pub-6206997118305400/3415399173</string>
+    <string name="google_app_id">mu774-cdbb9</string>
+
+    <!-- Start up dialog -->
+    <string name="startup_title">Permissive SELinux</string>
+    <string name="startup_text">使用此 APP 需要將 SEPolicy 設成 permissive，
+        請注意，這將會讓您的手機檔案系統權限打開，按下繼續表示同意後果將由您自己負責。
+        此設定每次開機皆會重置而且您可以隨時在設定裡取消。</string>
+    <string name="startup_confirm">繼續</string>
+    <string name="startup_cancel">取消</string>
+    <string name="startup_cancel_warn">警告</string>
+    <string name="startup_cancel_warntext">您並未同意設定 permissive SEPolicy，程式將無法繼續。</string>
+    <string name="startup_cancel_exit">離開</string>
+    <string name="startup_permit_system_alarm">請允許使用系統繪圖</string>
+    <string name="startup_permit_system_alarm_failed">您未允許設定，程式將不會正常運作</string>
+    <string name="startup_display_ok">您的螢幕解析度是支援的: </string>
+    <string name="startup_display_not_ok">很抱歉，我們尚未支援解析度: </string>
+    <string name="startup_display_not_ok_help">您可以拜訪 https://github.com/josh-hsu/MU774 提供您的螢幕截圖幫助我們支援您的螢幕</string>
+
+    <!-- PointSelectionActivity -->
+    <string name="default_point_info">座標以及顏色資訊</string>
+    <string name="title_activity_point_selection">抓點選色</string>
+
+    <!-- HeadService -->
+    <string name="headservice_how_to_stop">服務已啟動，長按圖示可終止服務</string>
+    <string name="headservice_stop_title">停止服務</string>
+    <string name="headservice_stop_info">確定要停止 MU774 服務嗎？</string>
+    <string name="headservice_stop_button">停止</string>
+
+    <!-- Preferences -->
+    <string name="stage_1">一般戰鬥</string>
+    <string name="stage_2">黃金屋</string>
+    <string name="stage_3">討伐戰(實作中)</string>
+    <string name="stage_4">競技場(實作中)</string>
+</resources>
