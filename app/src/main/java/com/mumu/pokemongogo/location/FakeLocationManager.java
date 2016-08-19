@@ -38,19 +38,23 @@ public class FakeLocationManager {
     public FakeLocationManager(Context context, FakeLocation defaultLoc) {
         mContext = context;
 
-        if (defaultLoc != null)
+        // Start fetch information from framework hacking
+        boolean shouldUseLastLocation = initLastLocation();
+
+        if (defaultLoc != null) {
             mDefaultLocation = defaultLoc;
-        else
+        } else if (shouldUseLastLocation) {
+            mDefaultLocation = new FakeLocation(mCurrentLat, mCurrentLong, mCurrentAlt, mCurrentAccuracy);
+        } else {
             mDefaultLocation = new FakeLocation(25.0335, 121.5642, 10.2, 6.91); //this is the location of Taipei 101
+        }
 
         // Override location now, maybe in the future we should restore actual location
         setDefaultLocation(mDefaultLocation);
-
-        // Start fetch information from framework hacking
-        initFirstTime();
     }
 
-    public void initFirstTime() {
+    public boolean initLastLocation() {
+        boolean oldDataConsist = true;
         String enabled = PropertyService.getSystemProperty(mContext.getString(R.string.property_fake_enable));
         String currentLat = PropertyService.getSystemProperty(mContext.getString(R.string.property_fake_lat));
         String currentLong = PropertyService.getSystemProperty(mContext.getString(R.string.property_fake_long));
@@ -60,10 +64,14 @@ public class FakeLocationManager {
 
         if (!currentLat.equals("")) {
             mCurrentLat = Double.parseDouble(currentLat);
+        } else {
+            oldDataConsist = false;
         }
 
         if (!currentLong.equals("")) {
             mCurrentLong = Double.parseDouble(currentLong);
+        } else {
+            oldDataConsist = false;
         }
 
         if (!currentAlt.equals("")) {
@@ -71,6 +79,7 @@ public class FakeLocationManager {
         }
 
         Log.d(TAG, "default: lat = " + mCurrentLat + ", long = " + mCurrentLong + ", alt = " + mCurrentAlt);
+        return oldDataConsist;
     }
 
     public void setEnable(boolean enable) {

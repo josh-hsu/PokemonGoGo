@@ -125,6 +125,9 @@ public class HeadService extends Service {
 
         // Config fake location manager
         mFakeLocationManager = new FakeLocationManager(mContext, null);
+
+        // Set enable
+        mFakeLocationManager.setEnable(true);
     }
 
     private void initGamePanelViews() {
@@ -510,13 +513,11 @@ public class HeadService extends Service {
         if (mDownButton != null) mWindowManager.removeView(mDownButton);
         if (mLeftButton != null) mWindowManager.removeView(mLeftButton);
         if (mRightButton != null) mWindowManager.removeView(mRightButton);
-        if (mMessageThread.isAlive())
-            mThreadStart = false;
+        if (mMessageThread.isAlive()) mThreadStart = false;
+        if (mFakeLocationManager != null) mFakeLocationManager.setEnable(false);
     }
 
     private void configFreeWalking(boolean on) {
-        mFakeLocationManager.setEnable(on);
-
         if (on) {
             mUpButton.setVisibility(View.VISIBLE);
             mDownButton.setVisibility(View.VISIBLE);
