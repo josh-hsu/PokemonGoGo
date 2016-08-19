@@ -68,10 +68,10 @@ public class HeadService extends Service {
     private final int mTextOffsetY = 13;
     private final int mToolOffsetX = 0;
     private final int mToolOffsetY = 75;
-    private final int mGameOffsetX = 75;
+    private final int mGameOffsetX = 80;
     private final int mGameOffsetY = 85;
     private final int mIncubateOffsetX = 150;
-    private final int mIncubateOffsetY = 80;
+    private final int mIncubateOffsetY = 85;
 
     private final Handler mHandler = new Handler();
     private final long mTouchTapThreshold = 200;  //Workaround for touch too sensitive
@@ -458,9 +458,11 @@ public class HeadService extends Service {
                         if (elapsedTime < mTouchTapThreshold) {
                             if (mAutoIncubating) {
                                 Log.d(TAG, "Stop auto incubating");
+                                mMessageText = "Stop Auto Incubating";
                                 mAutoIncubating = false;
                             } else {
                                 Log.d(TAG, "Start auto incubating");
+                                mMessageText = "Start Auto Incubating";
                                 mAutoIncubating = true;
                                 startAutoIncubating();
                             }
@@ -543,16 +545,17 @@ public class HeadService extends Service {
     }
 
     void startAutoIncubating() {
-        mAIThread.start();
+        if (!mAIThread.isAlive())
+            mAIThread.start();
     }
 
     class StartAutoIncubatingThread extends Thread {
         public void run() {
             while (mAutoIncubating) {
-                int direction = (int)(Math.random() * 10) % 4;
+                int direction = (int)(Math.random() * 10) % 5;
                 mFakeLocationManager.walkPace(direction);
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep((int)(Math.random() * 1000) + 500);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

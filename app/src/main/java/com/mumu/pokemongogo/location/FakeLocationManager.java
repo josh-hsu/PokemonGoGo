@@ -117,6 +117,8 @@ public class FakeLocationManager {
         } else if (direction == FakeLocation.SOUTH) {
             mCurrentLat -= (mPaceLat + mPaceLatShift);
             setLatitude(mCurrentLat);
+        } else {
+            Log.d(TAG, "Not supported direction");
         }
 
         setAccuracy(mCurrentAccuracy);
