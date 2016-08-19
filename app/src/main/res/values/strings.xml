@@ -33,10 +33,21 @@
     <string name="headservice_stop_title">Stop Service</string>
     <string name="headservice_stop_info">Are you sure you want to stop Pokemon Go Go service?</string>
     <string name="headservice_stop_button">Stop</string>
+    <string name="walk_up_button">↑</string>
+    <string name="walk_down_button">↓</string>
+    <string name="walk_left_button">←</string>
+    <string name="walk_right_button">→</string>
 
     <!-- Preferences -->
     <string name="stage_1">Normal Battle</string>
     <string name="stage_2">Golden House</string>
     <string name="stage_3">Dragon (Not ready)</string>
     <string name="stage_4">Arena (Not ready)</string>
+
+    <!-- Properties -->
+    <string name="property_fake_enable">persist.asus.fakegps.enable</string>
+    <string name="property_fake_lat">persist.asus.fakegps.lat</string>
+    <string name="property_fake_long">persist.asus.fakegps.long</string>
+    <string name="property_fake_acc">persist.asus.fakegps.acc</string>
+    <string name="property_fake_alt">persist.asus.fakegps.alt</string>
 </resources>

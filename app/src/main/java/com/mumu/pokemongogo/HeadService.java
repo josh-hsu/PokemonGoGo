@@ -24,6 +24,7 @@ import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.view.ContextThemeWrapper;
 import android.util.Log;
@@ -31,6 +32,7 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -54,29 +56,32 @@ public class HeadService extends Service {
     private boolean mThreadStart = false;
     private GetMessageThread mMessageThread;
 
-    final int mInitialPositionX = 0;
-    final int mInitialPositionY = 150;
-    final int mTextOffsetX = 120;
-    final int mTextOffsetY = 13;
-    final int mToolOffsetX = 0;
-    final int mToolOffsetY = 75;
-    final int mGameOffsetX = 70;
-    final int mGameOffsetY = 75;
+    private final int mInitialPositionX = 0;
+    private final int mInitialPositionY = 150;
+    private final int mTextOffsetX = 120;
+    private final int mTextOffsetY = 13;
+    private final int mToolOffsetX = 0;
+    private final int mToolOffsetY = 75;
+    private final int mGameOffsetX = 75;
+    private final int mGameOffsetY = 85;
 
     private final Handler mHandler = new Handler();
     private final long mTouchTapThreshold = 200;  //Workaround for touch too sensitive
     private final long mTouchLongPressThreshold = 1500;
 
-    final Runnable updateRunnable = new Runnable() {
+    // game control
+    private boolean mFreeWalking = false;
+    private Button mUpButton, mDownButton, mLeftButton, mRightButton;
+    WindowManager.LayoutParams mUpButtonLayoutParams, mDownButtonLayoutParams;
+    WindowManager.LayoutParams mLeftButtonLayoutParams, mRightButtonLayoutParams;
+    private static View.OnClickListener mWalkButtonController;
+
+    /*
+     * Runnable threads
+     */
+    private final Runnable updateRunnable = new Runnable() {
         public void run() {
             updateUI();
-        }
-    };
-    private final Runnable mDumpScreenRunnable = new Runnable() {
-        @Override
-        public void run() {
-            /* show icon view back */
-            configIconViews(true);
         }
     };
 
@@ -95,8 +100,19 @@ public class HeadService extends Service {
         super.onCreate();
 
         mContext = this;
-
         mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+
+        // On screen view initializing, do not mess around here
+        initGameControlButtons();
+        initGamePanelViews();
+        initGamePanelTouchListeners();
+
+        mThreadStart = true;
+        mMessageThread = new GetMessageThread();
+        mMessageThread.start();
+    }
+
+    private void initGamePanelViews() {
         mHeadMsgTextView = new TextView(this);
         mHeadMsgTextView.setText("");
         mHeadMsgTextView.setTextColor(Color.BLACK);
@@ -154,13 +170,106 @@ public class HeadService extends Service {
         mWindowManager.addView(mHeadMsgTextView, mMsgTextLayoutParams);
         mWindowManager.addView(mHeadStartView, mHeadStartLayoutParams);
         mWindowManager.addView(mHeadHomeView, mHeadHomeLayoutParams);
+
         mHeadStartView.setVisibility(View.INVISIBLE);
         mHeadHomeView.setVisibility(View.INVISIBLE);
+    }
 
-        mThreadStart = true;
-        mMessageThread = new GetMessageThread();
-        mMessageThread.start();
+    private void initGameControlButtons() {
+        mUpButton = new Button(this);
+        mUpButton.setText(getString(R.string.walk_up_button));
+        mUpButton.setWidth(30);
+        mUpButton.setHeight(30);
+        mUpButton.setBackgroundColor(ContextCompat.getColor(mContext, R.color.button_half_transparent));
+        mDownButton = new Button(this);
+        mDownButton.setText(getString(R.string.walk_down_button));
+        mDownButton.setWidth(30);
+        mDownButton.setHeight(30);
+        mDownButton.setBackgroundColor(ContextCompat.getColor(mContext, R.color.button_half_transparent));
+        mLeftButton = new Button(this);
+        mLeftButton.setText(getString(R.string.walk_left_button));
+        mLeftButton.setWidth(30);
+        mLeftButton.setHeight(30);
+        mLeftButton.setBackgroundColor(ContextCompat.getColor(mContext, R.color.button_half_transparent));
+        mRightButton = new Button(this);
+        mRightButton.setText(getString(R.string.walk_right_button));
+        mRightButton.setWidth(30);
+        mRightButton.setHeight(30);
+        mRightButton.setBackgroundColor(ContextCompat.getColor(mContext, R.color.button_half_transparent));
 
+        mUpButtonLayoutParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT);
+
+        mDownButtonLayoutParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT);
+
+        mLeftButtonLayoutParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT);
+
+        mRightButtonLayoutParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT);
+
+        mUpButtonLayoutParams.gravity = Gravity.BOTTOM | Gravity.START;
+        mUpButtonLayoutParams.x = mInitialPositionX + 150;
+        mUpButtonLayoutParams.y = mInitialPositionY + 200;
+        mDownButtonLayoutParams.gravity = Gravity.BOTTOM | Gravity.START;
+        mDownButtonLayoutParams.x = mInitialPositionX + 150;
+        mDownButtonLayoutParams.y = mInitialPositionY;
+        mLeftButtonLayoutParams.gravity = Gravity.BOTTOM | Gravity.START;
+        mLeftButtonLayoutParams.x = mInitialPositionX + 50;
+        mLeftButtonLayoutParams.y = mInitialPositionY + 100;
+        mRightButtonLayoutParams.gravity = Gravity.BOTTOM | Gravity.START;
+        mRightButtonLayoutParams.x = mInitialPositionX + 230;
+        mRightButtonLayoutParams.y = mInitialPositionY + 100;
+
+        mWindowManager.addView(mUpButton, mUpButtonLayoutParams);
+        mWindowManager.addView(mDownButton, mDownButtonLayoutParams);
+        mWindowManager.addView(mLeftButton, mLeftButtonLayoutParams);
+        mWindowManager.addView(mRightButton, mRightButtonLayoutParams);
+
+        mUpButton.setVisibility(View.INVISIBLE);
+        mDownButton.setVisibility(View.INVISIBLE);
+        mLeftButton.setVisibility(View.INVISIBLE);
+        mRightButton.setVisibility(View.INVISIBLE);
+
+        mWalkButtonController = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (view.equals(mUpButton)) {
+                    Log.d(TAG, "UP!");
+                } else if (view.equals(mDownButton)) {
+                    Log.d(TAG, "DOWN!");
+                } else if (view.equals(mLeftButton)) {
+                    Log.d(TAG, "LEFT!");
+                } else if (view.equals(mRightButton)) {
+                    Log.d(TAG, "RIGHT!");
+                }
+            }
+        };
+
+        mUpButton.setOnClickListener(mWalkButtonController);
+        mDownButton.setOnClickListener(mWalkButtonController);
+        mLeftButton.setOnClickListener(mWalkButtonController);
+        mRightButton.setOnClickListener(mWalkButtonController);
+    }
+
+    private void initGamePanelTouchListeners() {
         mHeadIconView.setOnTouchListener(new View.OnTouchListener() {
             private int initialX;
             private int initialY;
@@ -243,8 +352,10 @@ public class HeadService extends Service {
                         touchUpTime = System.currentTimeMillis();
                         long elapsedTime = touchUpTime - touchDownTime;
                         if (elapsedTime < mTouchTapThreshold) {
-                            configIconViews(false);
-                            mHandler.postDelayed(mDumpScreenRunnable, 100);
+                            mFreeWalking = !mFreeWalking;
+                            mMessageText = mFreeWalking ? "Starting service" : "Stopping service";
+                            configFreeWalking(mFreeWalking);
+                            mHeadStartView.setImageResource(mFreeWalking ? R.drawable.ic_pause : R.drawable.ic_play);
                         }
                         return true;
                     case MotionEvent.ACTION_MOVE:
@@ -315,19 +426,25 @@ public class HeadService extends Service {
         if (mHeadMsgTextView != null) mWindowManager.removeView(mHeadMsgTextView);
         if (mHeadStartView != null) mWindowManager.removeView(mHeadStartView);
         if (mHeadHomeView != null) mWindowManager.removeView(mHeadHomeView);
+        if (mUpButton != null) mWindowManager.removeView(mUpButton);
+        if (mDownButton != null) mWindowManager.removeView(mDownButton);
+        if (mLeftButton != null) mWindowManager.removeView(mLeftButton);
+        if (mRightButton != null) mWindowManager.removeView(mRightButton);
         if (mMessageThread.isAlive())
             mThreadStart = false;
     }
 
-    private void configIconViews(boolean show) {
-        if (show) {
-            mHeadStartView.setVisibility(View.VISIBLE);
-            mHeadIconView.setVisibility(View.VISIBLE);
-            mHeadHomeView.setVisibility(View.VISIBLE);
+    private void configFreeWalking(boolean on) {
+        if (on) {
+            mUpButton.setVisibility(View.VISIBLE);
+            mDownButton.setVisibility(View.VISIBLE);
+            mLeftButton.setVisibility(View.VISIBLE);
+            mRightButton.setVisibility(View.VISIBLE);
         } else {
-            mHeadStartView.setVisibility(View.INVISIBLE);
-            mHeadIconView.setVisibility(View.INVISIBLE);
-            mHeadHomeView.setVisibility(View.INVISIBLE);
+            mUpButton.setVisibility(View.INVISIBLE);
+            mDownButton.setVisibility(View.INVISIBLE);
+            mLeftButton.setVisibility(View.INVISIBLE);
+            mRightButton.setVisibility(View.INVISIBLE);
         }
     }
 
