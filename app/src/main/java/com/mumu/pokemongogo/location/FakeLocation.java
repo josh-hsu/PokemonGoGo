@@ -22,10 +22,20 @@ public class FakeLocation {
     public double altitude;
     public double accuracy;
 
+    public static final int NORTH = 0;
+    public static final int SOUTH = 1;
+    public static final int WEST = 2;
+    public static final int EAST = 3;
+
     public FakeLocation(double la, double lo, double alt, double acc) {
         latitude = la;
         longitude = lo;
         altitude = alt;
         accuracy = acc;
+    }
+
+    public String toString() {
+        return "Latitude = " + latitude + ", longitude = " + longitude + ", altitude = " +
+                altitude + ", accuracy = " + accuracy;
     }
 }

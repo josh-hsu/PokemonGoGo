@@ -24,18 +24,27 @@ import com.mumu.pokemongogo.R;
 public class FakeLocationManager {
     private final static String TAG = "PokemonGoGo";
     private Context mContext;
-    private double mCurrentLat = 0.0;
-    private double mCurrentLong = 0.0;
-    private double mCurrentAlt = 0.0;
+    private double mCurrentLat = 25.0335;
+    private double mCurrentLong = 121.5642;
+    private double mCurrentAlt = 10.2;
+    private static final double mPaceLat = 0.000051;
+    private static final double mPaceLong = 0.000049;
     private boolean mIsEnabled;
+    public FakeLocation mDefaultLocation;
 
-    public FakeLocationManager(Context context) {
+    public FakeLocationManager(Context context, FakeLocation defaultLoc) {
         mContext = context;
+
+        if (defaultLoc != null)
+            mDefaultLocation = defaultLoc;
+        else
+            mDefaultLocation = new FakeLocation(25.0335, 121.5642, 10.2, 6.91); //this is the location of Taipei 101
+
+        // Override location now, maybe in the future we should restore actual location
+        setDefaultLocation(mDefaultLocation);
 
         // Start fetch information from framework hacking
         initFirstTime();
-
-        // If the previous
     }
 
     public void initFirstTime() {
@@ -57,6 +66,8 @@ public class FakeLocationManager {
         if (!currentAlt.equals("")) {
             mCurrentAlt = Double.parseDouble(currentAlt);
         }
+
+        Log.d(TAG, "default: lat = " + mCurrentLat + ", long = " + mCurrentLong + ", alt = " + mCurrentAlt);
     }
 
     public void setEnable(boolean enable) {
@@ -74,26 +85,49 @@ public class FakeLocationManager {
     private void setDefaultLocation(FakeLocation loc) {
         if (loc == null) {
             Log.e(TAG, "Cannot set default location null");
-            return;
         } else {
+            setLocation(loc);
+        }
+    }
 
+    public void setLocation(FakeLocation loc) {
+        Log.d(TAG, "Set location " + loc.toString());
+        setLatitude(loc.latitude);
+        setLongitude(loc.longitude);
+        setAltitude(loc.altitude);
+        setAccuracy(loc.accuracy);
+    }
+
+    public void walkPace(int direction) {
+        if (direction == FakeLocation.EAST) { // positive
+            mCurrentLong -= mPaceLong;
+            setLongitude(mCurrentLong);
+        } else if (direction == FakeLocation.WEST) { //negative
+            mCurrentLong += mPaceLong;
+            setLongitude(mCurrentLong);
+        } else if (direction == FakeLocation.NORTH) {
+            mCurrentLat += mPaceLat;
+            setLatitude(mCurrentLat);
+        } else if (direction == FakeLocation.SOUTH) {
+            mCurrentLat -= mPaceLat;
+            setLatitude(mCurrentLat);
         }
     }
 
     private void setLatitude(double lat) {
-
+        PropertyService.setSystemProperty(mContext.getString(R.string.property_fake_lat), ""+lat);
     }
 
     private void setLongitude(double lon) {
-
+        PropertyService.setSystemProperty(mContext.getString(R.string.property_fake_long), ""+lon);
     }
 
     private void setAltitude(double alt) {
-
+        PropertyService.setSystemProperty(mContext.getString(R.string.property_fake_alt), ""+alt);
     }
 
     private void setAccuracy(double acc) {
-
+        PropertyService.setSystemProperty(mContext.getString(R.string.property_fake_acc), ""+acc);
     }
 
 }

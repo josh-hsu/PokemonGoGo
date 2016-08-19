@@ -36,9 +36,13 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.mumu.pokemongogo.location.FakeLocation;
+import com.mumu.pokemongogo.location.FakeLocationManager;
+
 public class HeadService extends Service {
     private static final String TAG = "PokemonGoGo";
     private Context mContext;
+    private FakeLocationManager mFakeLocationManager;
 
     private WindowManager mWindowManager;
     WindowManager.LayoutParams mHeadIconLayoutParams;
@@ -110,6 +114,9 @@ public class HeadService extends Service {
         mThreadStart = true;
         mMessageThread = new GetMessageThread();
         mMessageThread.start();
+
+        // Config fake location manager
+        mFakeLocationManager = new FakeLocationManager(mContext, null);
     }
 
     private void initGamePanelViews() {
@@ -253,12 +260,16 @@ public class HeadService extends Service {
             public void onClick(View view) {
                 if (view.equals(mUpButton)) {
                     Log.d(TAG, "UP!");
+                    mFakeLocationManager.walkPace(FakeLocation.NORTH);
                 } else if (view.equals(mDownButton)) {
                     Log.d(TAG, "DOWN!");
+                    mFakeLocationManager.walkPace(FakeLocation.SOUTH);
                 } else if (view.equals(mLeftButton)) {
                     Log.d(TAG, "LEFT!");
+                    mFakeLocationManager.walkPace(FakeLocation.EAST);
                 } else if (view.equals(mRightButton)) {
                     Log.d(TAG, "RIGHT!");
+                    mFakeLocationManager.walkPace(FakeLocation.WEST);
                 }
             }
         };
@@ -435,6 +446,8 @@ public class HeadService extends Service {
     }
 
     private void configFreeWalking(boolean on) {
+        mFakeLocationManager.setEnable(on);
+
         if (on) {
             mUpButton.setVisibility(View.VISIBLE);
             mDownButton.setVisibility(View.VISIBLE);
