@@ -31,7 +31,7 @@
     <!-- HeadService -->
     <string name="headservice_how_to_stop">Service started, you can long press the icon to stop it.</string>
     <string name="headservice_stop_title">Stop Service</string>
-    <string name="headservice_stop_info">Are you sure you want to stop MU774 service?</string>
+    <string name="headservice_stop_info">Are you sure you want to stop Pokemon Go Go service?</string>
     <string name="headservice_stop_button">Stop</string>
 
     <!-- Preferences -->

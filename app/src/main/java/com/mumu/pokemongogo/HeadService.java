@@ -34,17 +34,26 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-
 public class HeadService extends Service {
-    private static final String TAG = "MU774";
+    private static final String TAG = "PokemonGoGo";
+    private Context mContext;
+
     private WindowManager mWindowManager;
-    private ImageView iconView;
-    private ImageView toolView;
-    private ImageView gameView;
-    private TextView messageTextView;
-    private String mMessageText = "";
+    WindowManager.LayoutParams mHeadIconLayoutParams;
+    WindowManager.LayoutParams mMsgTextLayoutParams;
+    WindowManager.LayoutParams mHeadStartLayoutParams;
+    WindowManager.LayoutParams mHeadHomeLayoutParams;
+
+    // icon shown on screen
+    private ImageView mHeadIconView;
+    private ImageView mHeadStartView;
+    private ImageView mHeadHomeView;
+    private TextView  mHeadMsgTextView;
+
+    private String mMessageText = "Now stopping";
     private boolean mThreadStart = false;
     private GetMessageThread mMessageThread;
+
     final int mInitialPositionX = 0;
     final int mInitialPositionY = 150;
     final int mTextOffsetX = 120;
@@ -53,14 +62,10 @@ public class HeadService extends Service {
     final int mToolOffsetY = 75;
     final int mGameOffsetX = 70;
     final int mGameOffsetY = 75;
-    WindowManager.LayoutParams iconLayoutParams;
-    WindowManager.LayoutParams textLayoutParams;
-    WindowManager.LayoutParams toolLayoutParams;
-    WindowManager.LayoutParams gameLayoutParams;
+
     private final Handler mHandler = new Handler();
     private final long mTouchTapThreshold = 200;  //Workaround for touch too sensitive
     private final long mTouchLongPressThreshold = 1500;
-    private Context mContext;
 
     final Runnable updateRunnable = new Runnable() {
         public void run() {
@@ -76,7 +81,7 @@ public class HeadService extends Service {
     };
 
     private void updateUI() {
-        messageTextView.setText(mMessageText);
+        mHeadMsgTextView.setText(mMessageText);
     }
 
     @Override
@@ -92,71 +97,71 @@ public class HeadService extends Service {
         mContext = this;
 
         mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        messageTextView = new TextView(this);
-        messageTextView.setText("");
-        messageTextView.setTextColor(Color.BLACK);
-        messageTextView.setBackgroundColor(Color.WHITE);
+        mHeadMsgTextView = new TextView(this);
+        mHeadMsgTextView.setText("");
+        mHeadMsgTextView.setTextColor(Color.BLACK);
+        mHeadMsgTextView.setBackgroundColor(Color.WHITE);
 
-        iconView = new ImageView(this);
-        iconView.setImageResource(R.mipmap.ic_launcher);
-        toolView = new ImageView(this);
-        toolView.setImageResource(R.mipmap.ic_launcher);
-        gameView = new ImageView(this);
-        gameView.setImageResource(R.mipmap.ic_launcher);
+        mHeadIconView = new ImageView(this);
+        mHeadIconView.setImageResource(R.mipmap.ic_launcher);
+        mHeadStartView = new ImageView(this);
+        mHeadStartView.setImageResource(R.drawable.ic_play);
+        mHeadHomeView = new ImageView(this);
+        mHeadHomeView.setImageResource(R.drawable.ic_location_pin);
 
-        iconLayoutParams = new WindowManager.LayoutParams(
+        mHeadIconLayoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.TYPE_PHONE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
-        textLayoutParams = new WindowManager.LayoutParams(
+        mMsgTextLayoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.TYPE_PHONE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
-        toolLayoutParams = new WindowManager.LayoutParams(
+        mHeadStartLayoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.TYPE_PHONE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
-        gameLayoutParams = new WindowManager.LayoutParams(
+        mHeadHomeLayoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.TYPE_PHONE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
-        iconLayoutParams.gravity = Gravity.TOP | Gravity.START;
-        iconLayoutParams.x = mInitialPositionX;
-        iconLayoutParams.y = mInitialPositionY;
-        textLayoutParams.gravity = Gravity.TOP | Gravity.START;
-        textLayoutParams.x = mInitialPositionX + mTextOffsetX;
-        textLayoutParams.y = mInitialPositionY + mTextOffsetY;
-        toolLayoutParams.gravity = Gravity.TOP | Gravity.START;
-        toolLayoutParams.x = mInitialPositionX + mToolOffsetX;
-        toolLayoutParams.y = mInitialPositionY + mToolOffsetY;
-        gameLayoutParams.gravity = Gravity.TOP | Gravity.START;
-        gameLayoutParams.x = mInitialPositionX + mGameOffsetX;
-        gameLayoutParams.y = mInitialPositionY + mGameOffsetY;
+        mHeadIconLayoutParams.gravity = Gravity.TOP | Gravity.START;
+        mHeadIconLayoutParams.x = mInitialPositionX;
+        mHeadIconLayoutParams.y = mInitialPositionY;
+        mMsgTextLayoutParams.gravity = Gravity.TOP | Gravity.START;
+        mMsgTextLayoutParams.x = mInitialPositionX + mTextOffsetX;
+        mMsgTextLayoutParams.y = mInitialPositionY + mTextOffsetY;
+        mHeadStartLayoutParams.gravity = Gravity.TOP | Gravity.START;
+        mHeadStartLayoutParams.x = mInitialPositionX + mToolOffsetX;
+        mHeadStartLayoutParams.y = mInitialPositionY + mToolOffsetY;
+        mHeadHomeLayoutParams.gravity = Gravity.TOP | Gravity.START;
+        mHeadHomeLayoutParams.x = mInitialPositionX + mGameOffsetX;
+        mHeadHomeLayoutParams.y = mInitialPositionY + mGameOffsetY;
 
-        mWindowManager.addView(iconView, iconLayoutParams);
-        mWindowManager.addView(messageTextView, textLayoutParams);
-        mWindowManager.addView(toolView, toolLayoutParams);
-        mWindowManager.addView(gameView, gameLayoutParams);
-        toolView.setVisibility(View.INVISIBLE);
-        gameView.setVisibility(View.INVISIBLE);
+        mWindowManager.addView(mHeadIconView, mHeadIconLayoutParams);
+        mWindowManager.addView(mHeadMsgTextView, mMsgTextLayoutParams);
+        mWindowManager.addView(mHeadStartView, mHeadStartLayoutParams);
+        mWindowManager.addView(mHeadHomeView, mHeadHomeLayoutParams);
+        mHeadStartView.setVisibility(View.INVISIBLE);
+        mHeadHomeView.setVisibility(View.INVISIBLE);
 
         mThreadStart = true;
         mMessageThread = new GetMessageThread();
         mMessageThread.start();
 
-        iconView.setOnTouchListener(new View.OnTouchListener() {
+        mHeadIconView.setOnTouchListener(new View.OnTouchListener() {
             private int initialX;
             private int initialY;
             private float initialTouchX;
@@ -170,8 +175,8 @@ public class HeadService extends Service {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         touchDownTime = System.currentTimeMillis();
-                        initialX = iconLayoutParams.x;
-                        initialY = iconLayoutParams.y;
+                        initialX = mHeadIconLayoutParams.x;
+                        initialY = mHeadIconLayoutParams.y;
                         initialTouchX = event.getRawX();
                         initialTouchY = event.getRawY();
                         return true;
@@ -181,24 +186,24 @@ public class HeadService extends Service {
                         if (elapsedTime < mTouchTapThreshold) {
                             touchCount++;
                             if (touchCount % 2 == 0) {
-                                toolView.setVisibility(View.INVISIBLE);
-                                gameView.setVisibility(View.INVISIBLE);
+                                mHeadStartView.setVisibility(View.INVISIBLE);
+                                mHeadHomeView.setVisibility(View.INVISIBLE);
                             } else {
-                                toolView.setVisibility(View.VISIBLE);
-                                gameView.setVisibility(View.VISIBLE);
+                                mHeadStartView.setVisibility(View.VISIBLE);
+                                mHeadHomeView.setVisibility(View.VISIBLE);
                             }
                         } else if (elapsedTime > mTouchLongPressThreshold) {
                             AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.myDialog))
-                                    .setTitle("Title")
-                                    .setMessage("Msg")
-                                    .setPositiveButton("Positive", new DialogInterface.OnClickListener() {
+                                    .setTitle(getString(R.string.headservice_stop_title))
+                                    .setMessage(getString(R.string.headservice_stop_info))
+                                    .setPositiveButton(getString(R.string.headservice_stop_button), new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
                                             // Let's do some background stuff
                                             StopService();
                                         }
                                     })
-                                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    .setNegativeButton(getString(R.string.startup_cancel), new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
                                         }
@@ -216,7 +221,7 @@ public class HeadService extends Service {
             }
         });
 
-        toolView.setOnTouchListener(new View.OnTouchListener() {
+        mHeadStartView.setOnTouchListener(new View.OnTouchListener() {
             private int initialX;
             private int initialY;
             private float initialTouchX;
@@ -229,8 +234,8 @@ public class HeadService extends Service {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         touchDownTime = System.currentTimeMillis();
-                        initialX = iconLayoutParams.x;
-                        initialY = iconLayoutParams.y;
+                        initialX = mHeadIconLayoutParams.x;
+                        initialY = mHeadIconLayoutParams.y;
                         initialTouchX = event.getRawX();
                         initialTouchY = event.getRawY();
                         return true;
@@ -250,7 +255,7 @@ public class HeadService extends Service {
             }
         });
 
-        gameView.setOnTouchListener(new View.OnTouchListener() {
+        mHeadHomeView.setOnTouchListener(new View.OnTouchListener() {
             private int initialX;
             private int initialY;
             private float initialTouchX;
@@ -263,8 +268,8 @@ public class HeadService extends Service {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         touchDownTime = System.currentTimeMillis();
-                        initialX = iconLayoutParams.x;
-                        initialY = iconLayoutParams.y;
+                        initialX = mHeadIconLayoutParams.x;
+                        initialY = mHeadIconLayoutParams.y;
                         initialTouchX = event.getRawX();
                         initialTouchY = event.getRawY();
                         return true;
@@ -285,18 +290,18 @@ public class HeadService extends Service {
     }
 
     private void MoveIcons(int initialX, int initialY, float initialTouchX, float initialTouchY, MotionEvent event) {
-        iconLayoutParams.x = initialX + (int) (event.getRawX() - initialTouchX);
-        iconLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY);
-        textLayoutParams.x = initialX + (int) (event.getRawX() - initialTouchX) + mTextOffsetX;
-        textLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY) + mTextOffsetY;
-        toolLayoutParams.x = initialX + (int) (event.getRawX() - initialTouchX) + mToolOffsetX;
-        toolLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY) + mToolOffsetY;
-        gameLayoutParams.x = initialX + (int) (event.getRawX() - initialTouchX) + mGameOffsetX;
-        gameLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY) + mGameOffsetY;
-        mWindowManager.updateViewLayout(iconView, iconLayoutParams);
-        mWindowManager.updateViewLayout(messageTextView, textLayoutParams);
-        mWindowManager.updateViewLayout(toolView, toolLayoutParams);
-        mWindowManager.updateViewLayout(gameView, gameLayoutParams);
+        mHeadIconLayoutParams.x = initialX + (int) (event.getRawX() - initialTouchX);
+        mHeadIconLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY);
+        mMsgTextLayoutParams.x = initialX + (int) (event.getRawX() - initialTouchX) + mTextOffsetX;
+        mMsgTextLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY) + mTextOffsetY;
+        mHeadStartLayoutParams.x = initialX + (int) (event.getRawX() - initialTouchX) + mToolOffsetX;
+        mHeadStartLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY) + mToolOffsetY;
+        mHeadHomeLayoutParams.x = initialX + (int) (event.getRawX() - initialTouchX) + mGameOffsetX;
+        mHeadHomeLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY) + mGameOffsetY;
+        mWindowManager.updateViewLayout(mHeadIconView, mHeadIconLayoutParams);
+        mWindowManager.updateViewLayout(mHeadMsgTextView, mMsgTextLayoutParams);
+        mWindowManager.updateViewLayout(mHeadStartView, mHeadStartLayoutParams);
+        mWindowManager.updateViewLayout(mHeadHomeView, mHeadHomeLayoutParams);
     }
 
     private void StopService() {
@@ -306,34 +311,33 @@ public class HeadService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (iconView != null) mWindowManager.removeView(iconView);
-        if (messageTextView != null) mWindowManager.removeView(messageTextView);
-        if (toolView != null) mWindowManager.removeView(toolView);
-        if (gameView != null) mWindowManager.removeView(gameView);
+        if (mHeadIconView != null) mWindowManager.removeView(mHeadIconView);
+        if (mHeadMsgTextView != null) mWindowManager.removeView(mHeadMsgTextView);
+        if (mHeadStartView != null) mWindowManager.removeView(mHeadStartView);
+        if (mHeadHomeView != null) mWindowManager.removeView(mHeadHomeView);
         if (mMessageThread.isAlive())
             mThreadStart = false;
     }
 
     private void configIconViews(boolean show) {
         if (show) {
-            toolView.setVisibility(View.VISIBLE);
-            iconView.setVisibility(View.VISIBLE);
-            gameView.setVisibility(View.VISIBLE);
+            mHeadStartView.setVisibility(View.VISIBLE);
+            mHeadIconView.setVisibility(View.VISIBLE);
+            mHeadHomeView.setVisibility(View.VISIBLE);
         } else {
-            toolView.setVisibility(View.INVISIBLE);
-            iconView.setVisibility(View.INVISIBLE);
-            gameView.setVisibility(View.INVISIBLE);
+            mHeadStartView.setVisibility(View.INVISIBLE);
+            mHeadIconView.setVisibility(View.INVISIBLE);
+            mHeadHomeView.setVisibility(View.INVISIBLE);
         }
     }
 
     class GetMessageThread extends Thread {
         public void run() {
             while (mThreadStart) {
-                mMessageText = "HAHA";
                 mHandler.post(updateRunnable);
 
                 try {
-                    Thread.sleep(80);
+                    Thread.sleep(500);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

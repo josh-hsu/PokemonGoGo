@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">MU774</string>
+    <string name="app_name">Pokemon Go Go</string>
     <string name="activate">啟動服務</string>
     <string name="deactivate">停止服務</string>
     <string name="bugreport">建議/錯誤回報</string>
     <string name="settings">設定</string>
-    <string name="settings_title">MU774設定工具</string>
+    <string name="settings_title">設定工具</string>
     <string name="settings_skill_title">技能設定</string>
     <string name="banner_ad_unit_id">ca-app-pub-6206997118305400/3415399173</string>
     <string name="google_app_id">mu774-cdbb9</string>
@@ -15,7 +15,7 @@
     <string name="startup_text">使用此 APP 需要將 SEPolicy 設成 permissive，
         請注意，這將會讓您的手機檔案系統權限打開，按下繼續表示同意後果將由您自己負責。
         此設定每次開機皆會重置而且您可以隨時在設定裡取消。</string>
-    <string name="startup_confirm">繼續</string>
+    <string name="startup_confirm">確定</string>
     <string name="startup_cancel">取消</string>
     <string name="startup_cancel_warn">警告</string>
     <string name="startup_cancel_warntext">您並未同意設定 permissive SEPolicy，程式將無法繼續。</string>
@@ -33,7 +33,7 @@
     <!-- HeadService -->
     <string name="headservice_how_to_stop">服務已啟動，長按圖示可終止服務</string>
     <string name="headservice_stop_title">停止服務</string>
-    <string name="headservice_stop_info">確定要停止 MU774 服務嗎？</string>
+    <string name="headservice_stop_info">確定要停止 Pokemon Go Go 服務嗎？</string>
     <string name="headservice_stop_button">停止</string>
 
     <!-- Preferences -->
