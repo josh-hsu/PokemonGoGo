@@ -27,8 +27,11 @@ public class FakeLocationManager {
     private double mCurrentLat = 25.0335;
     private double mCurrentLong = 121.5642;
     private double mCurrentAlt = 10.2;
+    private double mCurrentAccuracy = 6.91;
     private static final double mPaceLat = 0.000051;
     private static final double mPaceLong = 0.000049;
+    private static double mPaceLatShift = 0.000001;
+    private static double mPaceLongShift = 0.000001;
     private boolean mIsEnabled;
     public FakeLocation mDefaultLocation;
 
@@ -99,19 +102,44 @@ public class FakeLocationManager {
     }
 
     public void walkPace(int direction) {
-        if (direction == FakeLocation.EAST) { // positive
-            mCurrentLong -= mPaceLong;
+        // must introduce random variable
+        controlRandomShift();
+
+        if (direction == FakeLocation.EAST) {
+            mCurrentLong -= (mPaceLong + mPaceLongShift);
             setLongitude(mCurrentLong);
-        } else if (direction == FakeLocation.WEST) { //negative
-            mCurrentLong += mPaceLong;
+        } else if (direction == FakeLocation.WEST) {
+            mCurrentLong += (mPaceLong + mPaceLongShift);
             setLongitude(mCurrentLong);
         } else if (direction == FakeLocation.NORTH) {
-            mCurrentLat += mPaceLat;
+            mCurrentLat += (mPaceLat + mPaceLatShift);
             setLatitude(mCurrentLat);
         } else if (direction == FakeLocation.SOUTH) {
-            mCurrentLat -= mPaceLat;
+            mCurrentLat -= (mPaceLat + mPaceLatShift);
             setLatitude(mCurrentLat);
         }
+
+        setAccuracy(mCurrentAccuracy);
+    }
+
+    private void controlRandomShift() {
+        // shift is controlled to be within -0.000001 ~ 0.000001
+        double shift = Math.random() / 1000000 - 0.0000005;
+        double accShift = Math.random() * 2 - 1;
+        mPaceLatShift = mPaceLatShift + shift;
+        mPaceLongShift = mPaceLongShift + shift;
+        mCurrentAccuracy += accShift;
+
+        if (mPaceLatShift > 0.000002 || mPaceLatShift < -0.000002)
+            mPaceLatShift = 0.000001;
+
+        if (mPaceLongShift > 0.000002 || mPaceLongShift < -0.000002)
+            mPaceLongShift = 0.000001;
+
+        if (mCurrentAccuracy > 9.9 || mCurrentAccuracy < 1.5)
+            mCurrentAccuracy = 5.2;
+
+        Log.d(TAG, "RANDOM lat = " + mPaceLatShift + ", long = " + mPaceLongShift);
     }
 
     private void setLatitude(double lat) {

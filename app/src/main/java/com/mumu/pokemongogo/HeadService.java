@@ -49,11 +49,13 @@ public class HeadService extends Service {
     WindowManager.LayoutParams mMsgTextLayoutParams;
     WindowManager.LayoutParams mHeadStartLayoutParams;
     WindowManager.LayoutParams mHeadHomeLayoutParams;
+    WindowManager.LayoutParams mHeadIncubateLayoutParams;
 
     // icon shown on screen
     private ImageView mHeadIconView;
     private ImageView mHeadStartView;
     private ImageView mHeadHomeView;
+    private ImageView mHeadIncubateView;
     private TextView  mHeadMsgTextView;
 
     private String mMessageText = "Now stopping";
@@ -68,6 +70,8 @@ public class HeadService extends Service {
     private final int mToolOffsetY = 75;
     private final int mGameOffsetX = 75;
     private final int mGameOffsetY = 85;
+    private final int mIncubateOffsetX = 150;
+    private final int mIncubateOffsetY = 80;
 
     private final Handler mHandler = new Handler();
     private final long mTouchTapThreshold = 200;  //Workaround for touch too sensitive
@@ -75,10 +79,12 @@ public class HeadService extends Service {
 
     // game control
     private boolean mFreeWalking = false;
+    private boolean mAutoIncubating = false;
     private Button mUpButton, mDownButton, mLeftButton, mRightButton;
     WindowManager.LayoutParams mUpButtonLayoutParams, mDownButtonLayoutParams;
     WindowManager.LayoutParams mLeftButtonLayoutParams, mRightButtonLayoutParams;
     private static View.OnClickListener mWalkButtonController;
+    private StartAutoIncubatingThread mAIThread;
 
     /*
      * Runnable threads
@@ -115,6 +121,8 @@ public class HeadService extends Service {
         mMessageThread = new GetMessageThread();
         mMessageThread.start();
 
+        mAIThread = new StartAutoIncubatingThread();
+
         // Config fake location manager
         mFakeLocationManager = new FakeLocationManager(mContext, null);
     }
@@ -131,6 +139,8 @@ public class HeadService extends Service {
         mHeadStartView.setImageResource(R.drawable.ic_play);
         mHeadHomeView = new ImageView(this);
         mHeadHomeView.setImageResource(R.drawable.ic_location_pin);
+        mHeadIncubateView = new ImageView(this);
+        mHeadIncubateView.setImageResource(R.drawable.ic_egg);
 
         mHeadIconLayoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -160,6 +170,13 @@ public class HeadService extends Service {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
+        mHeadIncubateLayoutParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT);
+
         mHeadIconLayoutParams.gravity = Gravity.TOP | Gravity.START;
         mHeadIconLayoutParams.x = mInitialPositionX;
         mHeadIconLayoutParams.y = mInitialPositionY;
@@ -172,14 +189,19 @@ public class HeadService extends Service {
         mHeadHomeLayoutParams.gravity = Gravity.TOP | Gravity.START;
         mHeadHomeLayoutParams.x = mInitialPositionX + mGameOffsetX;
         mHeadHomeLayoutParams.y = mInitialPositionY + mGameOffsetY;
+        mHeadIncubateLayoutParams.gravity = Gravity.TOP | Gravity.START;
+        mHeadIncubateLayoutParams.x = mInitialPositionX + mIncubateOffsetX;
+        mHeadIncubateLayoutParams.y = mInitialPositionY + mIncubateOffsetY;
 
         mWindowManager.addView(mHeadIconView, mHeadIconLayoutParams);
         mWindowManager.addView(mHeadMsgTextView, mMsgTextLayoutParams);
         mWindowManager.addView(mHeadStartView, mHeadStartLayoutParams);
         mWindowManager.addView(mHeadHomeView, mHeadHomeLayoutParams);
+        mWindowManager.addView(mHeadIncubateView, mHeadIncubateLayoutParams);
 
         mHeadStartView.setVisibility(View.INVISIBLE);
         mHeadHomeView.setVisibility(View.INVISIBLE);
+        mHeadIncubateView.setVisibility(View.INVISIBLE);
     }
 
     private void initGameControlButtons() {
@@ -308,9 +330,11 @@ public class HeadService extends Service {
                             if (touchCount % 2 == 0) {
                                 mHeadStartView.setVisibility(View.INVISIBLE);
                                 mHeadHomeView.setVisibility(View.INVISIBLE);
+                                mHeadIncubateView.setVisibility(View.INVISIBLE);
                             } else {
                                 mHeadStartView.setVisibility(View.VISIBLE);
                                 mHeadHomeView.setVisibility(View.VISIBLE);
+                                mHeadIncubateView.setVisibility(View.VISIBLE);
                             }
                         } else if (elapsedTime > mTouchLongPressThreshold) {
                             AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.myDialog))
@@ -409,6 +433,46 @@ public class HeadService extends Service {
                 return false;
             }
         });
+
+        mHeadIncubateView.setOnTouchListener(new View.OnTouchListener() {
+            private int initialX;
+            private int initialY;
+            private float initialTouchX;
+            private float initialTouchY;
+            private long touchDownTime;
+            private long touchUpTime;
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        touchDownTime = System.currentTimeMillis();
+                        initialX = mHeadIconLayoutParams.x;
+                        initialY = mHeadIconLayoutParams.y;
+                        initialTouchX = event.getRawX();
+                        initialTouchY = event.getRawY();
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        touchUpTime = System.currentTimeMillis();
+                        long elapsedTime = touchUpTime - touchDownTime;
+                        if (elapsedTime < mTouchTapThreshold) {
+                            if (mAutoIncubating) {
+                                Log.d(TAG, "Stop auto incubating");
+                                mAutoIncubating = false;
+                            } else {
+                                Log.d(TAG, "Start auto incubating");
+                                mAutoIncubating = true;
+                                startAutoIncubating();
+                            }
+                        }
+                        return true;
+                    case MotionEvent.ACTION_MOVE:
+                        MoveIcons(initialX, initialY, initialTouchX, initialTouchY, event);
+                        return true;
+                }
+                return false;
+            }
+        });
     }
 
     private void MoveIcons(int initialX, int initialY, float initialTouchX, float initialTouchY, MotionEvent event) {
@@ -420,10 +484,13 @@ public class HeadService extends Service {
         mHeadStartLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY) + mToolOffsetY;
         mHeadHomeLayoutParams.x = initialX + (int) (event.getRawX() - initialTouchX) + mGameOffsetX;
         mHeadHomeLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY) + mGameOffsetY;
+        mHeadIncubateLayoutParams.x = initialX + (int) (event.getRawX() - initialTouchX) + mIncubateOffsetX;
+        mHeadIncubateLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY) + mIncubateOffsetY;
         mWindowManager.updateViewLayout(mHeadIconView, mHeadIconLayoutParams);
         mWindowManager.updateViewLayout(mHeadMsgTextView, mMsgTextLayoutParams);
         mWindowManager.updateViewLayout(mHeadStartView, mHeadStartLayoutParams);
         mWindowManager.updateViewLayout(mHeadHomeView, mHeadHomeLayoutParams);
+        mWindowManager.updateViewLayout(mHeadIncubateView, mHeadIncubateLayoutParams);
     }
 
     private void StopService() {
@@ -468,6 +535,24 @@ public class HeadService extends Service {
 
                 try {
                     Thread.sleep(500);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    void startAutoIncubating() {
+        mAIThread.start();
+    }
+
+    class StartAutoIncubatingThread extends Thread {
+        public void run() {
+            while (mAutoIncubating) {
+                int direction = (int)(Math.random() * 10) % 4;
+                mFakeLocationManager.walkPace(direction);
+                try {
+                    Thread.sleep(1000);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
