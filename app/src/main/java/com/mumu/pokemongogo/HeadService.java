@@ -38,6 +38,7 @@ import android.widget.TextView;
 
 import com.mumu.pokemongogo.location.FakeLocation;
 import com.mumu.pokemongogo.location.FakeLocationManager;
+import com.mumu.pokemongogo.location.HumanWalkSimulator;
 
 public class HeadService extends Service {
     private static final String TAG = "PokemonGoGo";
@@ -547,9 +548,10 @@ public class HeadService extends Service {
 
     class StartAutoIncubatingThread extends Thread {
         public void run() {
+            HumanWalkSimulator walkSimulator = new HumanWalkSimulator();
+
             while (mAutoIncubating) {
-                int direction = (int)(Math.random() * 10) % 5;
-                mFakeLocationManager.walkPace(direction);
+                mFakeLocationManager.walkPace(walkSimulator.getNextDirection());
                 try {
                     Thread.sleep((int)(Math.random() * 1000) + 500);
                 } catch (Exception e) {

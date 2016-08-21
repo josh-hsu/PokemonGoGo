@@ -26,6 +26,7 @@ public class FakeLocation {
     public static final int SOUTH = 1;
     public static final int WEST = 2;
     public static final int EAST = 3;
+    public static final int STAY = 4;
 
     public FakeLocation(double la, double lo, double alt, double acc) {
         latitude = la;
