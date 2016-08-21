@@ -4,8 +4,8 @@
     <string name="deactivate">Stop Service</string>
     <string name="bugreport">Bug/Suggestion Report</string>
     <string name="settings">Settings</string>
-    <string name="settings_title">Seven Knights Game Settings</string>
-    <string name="settings_skill_title">Seven Knights Skill Settings</string>
+    <string name="settings_title">Game Settings</string>
+    <string name="settings_skill_title">Skill Settings</string>
     <string name="banner_ad_unit_id">ca-app-pub-6206997118305400/3415399173</string>
     <string name="google_app_id">mu774-cdbb9</string>
 

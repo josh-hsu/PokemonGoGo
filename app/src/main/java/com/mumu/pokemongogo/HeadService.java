@@ -83,7 +83,6 @@ public class HeadService extends Service {
     private Button mUpButton, mDownButton, mLeftButton, mRightButton;
     WindowManager.LayoutParams mUpButtonLayoutParams, mDownButtonLayoutParams;
     WindowManager.LayoutParams mLeftButtonLayoutParams, mRightButtonLayoutParams;
-    private static View.OnClickListener mWalkButtonController;
     private StartAutoIncubatingThread mAIThread;
 
     /*
@@ -280,20 +279,16 @@ public class HeadService extends Service {
         mLeftButton.setVisibility(View.INVISIBLE);
         mRightButton.setVisibility(View.INVISIBLE);
 
-        mWalkButtonController = new View.OnClickListener() {
+        final View.OnClickListener mWalkButtonController = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (view.equals(mUpButton)) {
-                    Log.d(TAG, "UP!");
                     mFakeLocationManager.walkPace(FakeLocation.NORTH);
                 } else if (view.equals(mDownButton)) {
-                    Log.d(TAG, "DOWN!");
                     mFakeLocationManager.walkPace(FakeLocation.SOUTH);
                 } else if (view.equals(mLeftButton)) {
-                    Log.d(TAG, "LEFT!");
                     mFakeLocationManager.walkPace(FakeLocation.EAST);
                 } else if (view.equals(mRightButton)) {
-                    Log.d(TAG, "RIGHT!");
                     mFakeLocationManager.walkPace(FakeLocation.WEST);
                 }
             }
