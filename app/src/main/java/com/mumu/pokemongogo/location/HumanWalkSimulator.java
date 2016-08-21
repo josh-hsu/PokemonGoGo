@@ -25,14 +25,20 @@ import android.util.Log;
  */
 public class HumanWalkSimulator {
     private static final String TAG = "PokemonGoGo";
-    private static final int MAX_DIR_COUNT = 30;
+    private static final int MAX_DIR_COUNT = 150;
     private static final double MAX_POSSIBILITY = 0.92;
+    private static final double STAY_POSSIBILITY = 0.1; // 10% chance that we stay for 1 second
+
+    public static final int POLICY_AVERAGE = 0;
+    public static final int POLICY_RANDOM = 1;
+    public static final int POLICY_CONSTANT = 2;
 
     private int mCurrentDirection = FakeLocation.STAY;
     private int mCurrentCount = 0;
     private final int[] mPossibilityEntry = {FakeLocation.NORTH, FakeLocation.SOUTH,
-            FakeLocation.WEST, FakeLocation.EAST, FakeLocation.STAY};
-    private double[] mPossibilityList = new double[5];
+            FakeLocation.WEST, FakeLocation.EAST};
+    private double[] mPossibilityList = new double[4];
+    private double[] mPossibilityStay = new double[2];
 
     public HumanWalkSimulator() {
         resetSimulator();
@@ -46,11 +52,13 @@ public class HumanWalkSimulator {
     }
 
     public void resetSimulator() {
-        mPossibilityList[0] = 0.23;
-        mPossibilityList[1] = 0.23;
-        mPossibilityList[2] = 0.23;
-        mPossibilityList[3] = 0.23;
-        mPossibilityList[4] = 0.08;
+        mPossibilityList[0] = 0.25;
+        mPossibilityList[1] = 0.25;
+        mPossibilityList[2] = 0.25;
+        mPossibilityList[3] = 0.25;
+
+        mPossibilityStay[0] = 1 - STAY_POSSIBILITY; // index 0 also says NO
+        mPossibilityStay[1] = STAY_POSSIBILITY;
     }
 
     /*
@@ -59,21 +67,21 @@ public class HumanWalkSimulator {
      */
     private int generateNewList() {
         int roll = rollTheDice(mPossibilityList);
-        Log.d(TAG, "roll = " + roll);
+        int shouldStay = rollTheDice(mPossibilityStay);
 
-        // current direction changed but stay, change nothing
-        if (roll == FakeLocation.STAY) {
-            return roll;
+        if (shouldStay == 1) {
+            return FakeLocation.STAY;
         }
 
         if (roll != mCurrentDirection) {
             mCurrentCount = 0;
             mCurrentDirection = roll;
-            setPossibility(mPossibilityList, roll, MAX_POSSIBILITY);
+            setPossibility(mPossibilityList, roll, MAX_POSSIBILITY, POLICY_CONSTANT);
         } else {
             mCurrentCount++;
             setPossibility(mPossibilityList, roll,
-                    MAX_POSSIBILITY * ((double)(MAX_DIR_COUNT - mCurrentCount) / (double)MAX_DIR_COUNT));
+                    MAX_POSSIBILITY * ((double)(MAX_DIR_COUNT - mCurrentCount) / (double)MAX_DIR_COUNT),
+                    POLICY_RANDOM);
         }
 
         return mCurrentDirection;
@@ -97,7 +105,22 @@ public class HumanWalkSimulator {
         return list.length - 1;
     }
 
-    private void setPossibility(double[] list, int index, double value) {
+    private void setPossibility(double[] list, int index, double value, int policy) {
+        switch (policy) {
+            case POLICY_AVERAGE:
+                setPossibilityAverage(list, index, value);
+                break;
+            case POLICY_RANDOM:
+                break;
+            case POLICY_CONSTANT:
+                setPossibilityConstant(list, index, value);
+                break;
+            default:
+                Log.w(TAG, "Set possibility with unrecognized policy");
+        }
+    }
+
+    private void setPossibilityAverage(double[] list, int index, double value) {
         if (value < 0.0 || value > 1.0) {
             Log.e(TAG, "Set possibility of " + mPossibilityEntry[index] + " to " + value + " is not valid.");
         } else {
@@ -112,6 +135,27 @@ public class HumanWalkSimulator {
             }
         }
         Log.d(TAG, "After change: ");
+        printList(list);
+    }
+
+    private void setPossibilityConstant(double[] list, int index, double value) {
+        if (value < 0.0 || value > 1.0) {
+            Log.e(TAG, "Set possibility of " + mPossibilityEntry[index] + " to " + value + " is not valid.");
+        } else {
+            double last_possibility = 1 - value;
+            for(int i = 0; i < list.length; i++) {
+                if (i == index) {
+                    list[i] = value;
+                } else {
+                    list[i] = last_possibility / (list.length - 1);
+                }
+            }
+        }
+        Log.d(TAG, "After change: ");
+        printList(list);
+    }
+
+    private void printList(double[] list) {
         for (int i = 0; i < list.length; i++)
             Log.d(TAG, "  [" + i + "] = " + list[i]);
     }

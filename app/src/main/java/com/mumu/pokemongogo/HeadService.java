@@ -551,7 +551,9 @@ public class HeadService extends Service {
             HumanWalkSimulator walkSimulator = new HumanWalkSimulator();
 
             while (mAutoIncubating) {
-                mFakeLocationManager.walkPace(walkSimulator.getNextDirection());
+                int nextDirection = walkSimulator.getNextDirection();
+                mFakeLocationManager.walkPace(nextDirection);
+                Log.d(TAG, "Now go " + nextDirection);
                 try {
                     Thread.sleep((int)(Math.random() * 1000) + 500);
                 } catch (Exception e) {
