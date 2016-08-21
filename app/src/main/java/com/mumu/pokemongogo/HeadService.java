@@ -509,6 +509,7 @@ public class HeadService extends Service {
         if (mDownButton != null) mWindowManager.removeView(mDownButton);
         if (mLeftButton != null) mWindowManager.removeView(mLeftButton);
         if (mRightButton != null) mWindowManager.removeView(mRightButton);
+        if (mHeadIncubateView != null) mWindowManager.removeView(mHeadIncubateView);
         if (mMessageThread.isAlive()) mThreadStart = false;
         if (mFakeLocationManager != null) mFakeLocationManager.setEnable(false);
     }
