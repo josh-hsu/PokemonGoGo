@@ -54,7 +54,7 @@ public class HeadService extends Service {
     private static final int IDX_MSG_TEXT = 1;
     private static final int IDX_START_ICON = 2;
     private static final int IDX_HOME_ICON = 3;
-    private static final int IDX_INCUBATOR_ICON = 3;
+    private static final int IDX_INCUBATOR_ICON = 4;
 
     private String mMessageText = "Now stopping";
     private boolean mThreadStart = false;
