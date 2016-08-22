@@ -85,6 +85,7 @@ public class HeadService extends Service {
     WindowManager.LayoutParams mUpButtonLayoutParams, mDownButtonLayoutParams;
     WindowManager.LayoutParams mLeftButtonLayoutParams, mRightButtonLayoutParams;
     private StartAutoIncubatingThread mAIThread;
+    private double mWalkSpeed = 1.0;
 
     /*
      * Runnable threads
@@ -283,14 +284,17 @@ public class HeadService extends Service {
         final View.OnClickListener mWalkButtonController = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // make sure the speed does not get override by auto incubator
+                mFakeLocationManager.setSpeed(mWalkSpeed);
+
                 if (view.equals(mUpButton)) {
-                    mFakeLocationManager.walkPace(FakeLocation.NORTH);
+                    mFakeLocationManager.walkPace(FakeLocation.NORTH, 1.0);
                 } else if (view.equals(mDownButton)) {
-                    mFakeLocationManager.walkPace(FakeLocation.SOUTH);
+                    mFakeLocationManager.walkPace(FakeLocation.SOUTH, 1.0);
                 } else if (view.equals(mLeftButton)) {
-                    mFakeLocationManager.walkPace(FakeLocation.EAST);
+                    mFakeLocationManager.walkPace(FakeLocation.EAST, 1.0);
                 } else if (view.equals(mRightButton)) {
-                    mFakeLocationManager.walkPace(FakeLocation.WEST);
+                    mFakeLocationManager.walkPace(FakeLocation.WEST, 1.0);
                 }
             }
         };
@@ -553,7 +557,10 @@ public class HeadService extends Service {
 
             while (mAutoIncubating) {
                 int nextDirection = walkSimulator.getNextDirection();
-                mFakeLocationManager.walkPace(nextDirection);
+                double speedChange = Math.random() + 1.0; // limit speed to 1 to 1.5
+                double directionRatio = 1.0 - Math.random() / 4.0; // the ratio of the direction, limit to 0.75 ~ 1
+                mFakeLocationManager.walkPace(nextDirection, directionRatio);
+                mFakeLocationManager.setSpeed(speedChange);
                 Log.d(TAG, "Now go " + nextDirection);
                 try {
                     Thread.sleep((int)(Math.random() * 1000) + 500);

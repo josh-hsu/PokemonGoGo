@@ -28,10 +28,11 @@ public class FakeLocationManager {
     private double mCurrentLong = 121.5642;
     private double mCurrentAlt = 10.2;
     private double mCurrentAccuracy = 6.91;
-    private static final double mPaceLat = 0.000051;
-    private static final double mPaceLong = 0.000049;
+    private static final double mPaceLat = 0.000038;
+    private static final double mPaceLong = 0.000039;
     private static double mPaceLatShift = 0.000001;
     private static double mPaceLongShift = 0.000001;
+    private static double mSpeed = 1;
     private boolean mIsEnabled;
     public FakeLocation mDefaultLocation;
 
@@ -110,26 +111,48 @@ public class FakeLocationManager {
         setAccuracy(loc.accuracy);
     }
 
-    public void walkPace(int direction) {
+    public void setSpeed(double speed) {
+        if (speed > 0.0 && speed < 16.1)
+            mSpeed = speed;
+        else
+            Log.w(TAG, "Unsupported speed");
+    }
+
+    public void walkPace(int direction, double ratio) {
+        double coordinateChange;
         // must introduce random variable
         controlRandomShift();
 
-        if (direction == FakeLocation.EAST) {
-            mCurrentLong -= (mPaceLong + mPaceLongShift);
-            setLongitude(mCurrentLong);
-        } else if (direction == FakeLocation.WEST) {
-            mCurrentLong += (mPaceLong + mPaceLongShift);
-            setLongitude(mCurrentLong);
-        } else if (direction == FakeLocation.NORTH) {
-            mCurrentLat += (mPaceLat + mPaceLatShift);
-            setLatitude(mCurrentLat);
-        } else if (direction == FakeLocation.SOUTH) {
-            mCurrentLat -= (mPaceLat + mPaceLatShift);
-            setLatitude(mCurrentLat);
-        } else {
-            Log.d(TAG, "Not supported direction");
+        // ratio must be within 0.0 ~ 1.0
+        if (ratio > 1.0 || ratio < 0.0) {
+            Log.e(TAG, "Unacceptable ratio " + ratio + " set to 1.0");
+            ratio = 1.0;
         }
 
+        if (direction == FakeLocation.EAST) {
+            coordinateChange = (mPaceLong + mPaceLongShift) * mSpeed;
+            mCurrentLong -= coordinateChange * ratio;
+            mCurrentLat -= coordinateChange * (1 - ratio);
+        } else if (direction == FakeLocation.WEST) {
+            coordinateChange = (mPaceLong + mPaceLongShift) * mSpeed;
+            mCurrentLong += coordinateChange * ratio;
+            mCurrentLat += coordinateChange * (1 - ratio);
+        } else if (direction == FakeLocation.NORTH) {
+            coordinateChange = (mPaceLat + mPaceLatShift) * mSpeed;
+            mCurrentLat += coordinateChange * ratio;
+            mCurrentLong += coordinateChange * (1 - ratio);
+        } else if (direction == FakeLocation.SOUTH) {
+            coordinateChange = (mPaceLat + mPaceLatShift) * mSpeed;
+            mCurrentLat -= coordinateChange * ratio;
+            mCurrentLong -= coordinateChange * (1 - ratio);
+        } else {
+            Log.d(TAG, "Not supported direction, this might be stay");
+            setAccuracy(mCurrentAccuracy);
+            return;
+        }
+
+        setLongitude(mCurrentLong);
+        setLatitude(mCurrentLat);
         setAccuracy(mCurrentAccuracy);
     }
 
