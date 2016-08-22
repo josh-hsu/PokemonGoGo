@@ -122,8 +122,6 @@ public class HeadService extends Service {
         mMessageThread = new GetMessageThread();
         mMessageThread.start();
 
-        mAIThread = new StartAutoIncubatingThread();
-
         // Config fake location manager
         mFakeLocationManager = new FakeLocationManager(mContext, null);
 
@@ -491,6 +489,7 @@ public class HeadService extends Service {
         mHeadHomeLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY) + mGameOffsetY;
         mHeadIncubateLayoutParams.x = initialX + (int) (event.getRawX() - initialTouchX) + mIncubateOffsetX;
         mHeadIncubateLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY) + mIncubateOffsetY;
+
         mWindowManager.updateViewLayout(mHeadIconView, mHeadIconLayoutParams);
         mWindowManager.updateViewLayout(mHeadMsgTextView, mMsgTextLayoutParams);
         mWindowManager.updateViewLayout(mHeadStartView, mHeadStartLayoutParams);
@@ -505,16 +504,21 @@ public class HeadService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        mThreadStart = false;
+
+        // Game tool
         if (mHeadIconView != null) mWindowManager.removeView(mHeadIconView);
         if (mHeadMsgTextView != null) mWindowManager.removeView(mHeadMsgTextView);
         if (mHeadStartView != null) mWindowManager.removeView(mHeadStartView);
         if (mHeadHomeView != null) mWindowManager.removeView(mHeadHomeView);
+        if (mHeadIncubateView != null) mWindowManager.removeView(mHeadIncubateView);
+
+        // Game control tool
         if (mUpButton != null) mWindowManager.removeView(mUpButton);
         if (mDownButton != null) mWindowManager.removeView(mDownButton);
         if (mLeftButton != null) mWindowManager.removeView(mLeftButton);
         if (mRightButton != null) mWindowManager.removeView(mRightButton);
-        if (mHeadIncubateView != null) mWindowManager.removeView(mHeadIncubateView);
-        if (mMessageThread.isAlive()) mThreadStart = false;
+
         if (mFakeLocationManager != null) mFakeLocationManager.setEnable(false);
     }
 
@@ -547,8 +551,8 @@ public class HeadService extends Service {
     }
 
     void startAutoIncubating() {
-        if (!mAIThread.isAlive())
-            mAIThread.start();
+        mAIThread = new StartAutoIncubatingThread();
+        mAIThread.start();
     }
 
     class StartAutoIncubatingThread extends Thread {
