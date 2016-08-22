@@ -36,9 +36,12 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.mumu.pokemongogo.headicon.HeadIconView;
 import com.mumu.pokemongogo.location.FakeLocation;
 import com.mumu.pokemongogo.location.FakeLocationManager;
 import com.mumu.pokemongogo.location.HumanWalkSimulator;
+
+import java.util.ArrayList;
 
 public class HeadService extends Service {
     private static final String TAG = "PokemonGoGo";
@@ -46,37 +49,19 @@ public class HeadService extends Service {
     private FakeLocationManager mFakeLocationManager;
 
     private WindowManager mWindowManager;
-    WindowManager.LayoutParams mHeadIconLayoutParams;
-    WindowManager.LayoutParams mMsgTextLayoutParams;
-    WindowManager.LayoutParams mHeadStartLayoutParams;
-    WindowManager.LayoutParams mHeadHomeLayoutParams;
-    WindowManager.LayoutParams mHeadIncubateLayoutParams;
-
-    // icon shown on screen
-    private ImageView mHeadIconView;
-    private ImageView mHeadStartView;
-    private ImageView mHeadHomeView;
-    private ImageView mHeadIncubateView;
-    private TextView  mHeadMsgTextView;
+    ArrayList<HeadIconView> mHeadIconList;
+    private static final int IDX_HEAD_ICON = 0;
+    private static final int IDX_MSG_TEXT = 1;
+    private static final int IDX_START_ICON = 2;
+    private static final int IDX_HOME_ICON = 3;
+    private static final int IDX_INCUBATOR_ICON = 3;
 
     private String mMessageText = "Now stopping";
     private boolean mThreadStart = false;
     private GetMessageThread mMessageThread;
 
-    private final int mInitialPositionX = 0;
-    private final int mInitialPositionY = 150;
-    private final int mTextOffsetX = 120;
-    private final int mTextOffsetY = 13;
-    private final int mToolOffsetX = 0;
-    private final int mToolOffsetY = 75;
-    private final int mGameOffsetX = 80;
-    private final int mGameOffsetY = 85;
-    private final int mIncubateOffsetX = 150;
-    private final int mIncubateOffsetY = 85;
-
     private final Handler mHandler = new Handler();
-    private final long mTouchTapThreshold = 200;  //Workaround for touch too sensitive
-    private final long mTouchLongPressThreshold = 1500;
+    private int mTouchHeadIconCount = 0;
 
     // game control
     private boolean mFreeWalking = false;
@@ -97,7 +82,7 @@ public class HeadService extends Service {
     };
 
     private void updateUI() {
-        mHeadMsgTextView.setText(mMessageText);
+        ((TextView) mHeadIconList.get(IDX_MSG_TEXT).getView()).setText(mMessageText);
     }
 
     @Override
@@ -116,7 +101,6 @@ public class HeadService extends Service {
         // On screen view initializing, do not mess around here
         initGameControlButtons();
         initGamePanelViews();
-        initGamePanelTouchListeners();
 
         mThreadStart = true;
         mMessageThread = new GetMessageThread();
@@ -130,83 +114,106 @@ public class HeadService extends Service {
     }
 
     private void initGamePanelViews() {
-        mHeadMsgTextView = new TextView(this);
-        mHeadMsgTextView.setText("");
-        mHeadMsgTextView.setTextColor(Color.BLACK);
-        mHeadMsgTextView.setBackgroundColor(Color.WHITE);
+        mHeadIconList = new ArrayList<>();
 
-        mHeadIconView = new ImageView(this);
-        mHeadIconView.setImageResource(R.mipmap.ic_launcher);
-        mHeadStartView = new ImageView(this);
-        mHeadStartView.setImageResource(R.drawable.ic_play);
-        mHeadHomeView = new ImageView(this);
-        mHeadHomeView.setImageResource(R.drawable.ic_location_pin);
-        mHeadIncubateView = new ImageView(this);
-        mHeadIncubateView.setImageResource(R.drawable.ic_egg);
+        // Head Icon
+        HeadIconView headIcon = new HeadIconView(new ImageView(this), mWindowManager, 0, 0);
+        ((ImageView) headIcon.getView()).setImageResource(R.mipmap.ic_launcher);
+        headIcon.setOnTapListener(new HeadIconView.OnTapListener() {
+            @Override
+            public void onTap(View view) {
+                configHeadIconShowing();
+            }
 
-        mHeadIconLayoutParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT);
+            @Override
+            public void onLongPress(View view) {
+                showExitConfirmDialog();
+            }
+        });
+        mHeadIconList.add(headIcon);
 
-        mMsgTextLayoutParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT);
+        // Message Text Icon
+        HeadIconView msgText = new HeadIconView(new TextView(this), mWindowManager, 120, 13);
+        ((TextView) msgText.getView()).setText("");
+        ((TextView) msgText.getView()).setTextColor(Color.BLACK);
+        msgText.getView().setBackgroundColor(Color.WHITE);
+        mHeadIconList.add(msgText);
 
-        mHeadStartLayoutParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT);
+        // Start Game Pad Icon
+        HeadIconView startIcon = new HeadIconView(new ImageView(this), mWindowManager, 0, 75);
+        ((ImageView) startIcon.getView()).setImageResource(R.drawable.ic_play);
+        startIcon.setOnTapListener(new HeadIconView.OnTapListener() {
+            @Override
+            public void onTap(View view) {
+                configFreeWalking();
+            }
 
-        mHeadHomeLayoutParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT);
+            @Override
+            public void onLongPress(View view) {
 
-        mHeadIncubateLayoutParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT);
+            }
+        });
+        mHeadIconList.add(startIcon);
 
-        mHeadIconLayoutParams.gravity = Gravity.TOP | Gravity.START;
-        mHeadIconLayoutParams.x = mInitialPositionX;
-        mHeadIconLayoutParams.y = mInitialPositionY;
-        mMsgTextLayoutParams.gravity = Gravity.TOP | Gravity.START;
-        mMsgTextLayoutParams.x = mInitialPositionX + mTextOffsetX;
-        mMsgTextLayoutParams.y = mInitialPositionY + mTextOffsetY;
-        mHeadStartLayoutParams.gravity = Gravity.TOP | Gravity.START;
-        mHeadStartLayoutParams.x = mInitialPositionX + mToolOffsetX;
-        mHeadStartLayoutParams.y = mInitialPositionY + mToolOffsetY;
-        mHeadHomeLayoutParams.gravity = Gravity.TOP | Gravity.START;
-        mHeadHomeLayoutParams.x = mInitialPositionX + mGameOffsetX;
-        mHeadHomeLayoutParams.y = mInitialPositionY + mGameOffsetY;
-        mHeadIncubateLayoutParams.gravity = Gravity.TOP | Gravity.START;
-        mHeadIncubateLayoutParams.x = mInitialPositionX + mIncubateOffsetX;
-        mHeadIncubateLayoutParams.y = mInitialPositionY + mIncubateOffsetY;
+        // Home Icon
+        HeadIconView homeIcon = new HeadIconView(new ImageView(this), mWindowManager, 80, 85);
+        ((ImageView) homeIcon.getView()).setImageResource(R.drawable.ic_location_pin);
+        homeIcon.setOnTapListener(new HeadIconView.OnTapListener() {
+            @Override
+            public void onTap(View view) {
+                Log.d(TAG, "config home icon");
+            }
 
-        mWindowManager.addView(mHeadIconView, mHeadIconLayoutParams);
-        mWindowManager.addView(mHeadMsgTextView, mMsgTextLayoutParams);
-        mWindowManager.addView(mHeadStartView, mHeadStartLayoutParams);
-        mWindowManager.addView(mHeadHomeView, mHeadHomeLayoutParams);
-        mWindowManager.addView(mHeadIncubateView, mHeadIncubateLayoutParams);
+            @Override
+            public void onLongPress(View view) {
 
-        mHeadStartView.setVisibility(View.INVISIBLE);
-        mHeadHomeView.setVisibility(View.INVISIBLE);
-        mHeadIncubateView.setVisibility(View.INVISIBLE);
+            }
+        });
+        mHeadIconList.add(homeIcon);
+
+        // Incubator Icon
+        HeadIconView incubatorIcon = new HeadIconView(new ImageView(this), mWindowManager, 150, 85);
+        ((ImageView) incubatorIcon.getView()).setImageResource(R.drawable.ic_egg);
+        incubatorIcon.setOnTapListener(new HeadIconView.OnTapListener() {
+            @Override
+            public void onTap(View view) {
+                Log.d(TAG, "config auto incubating");
+                configAutoIncubating();
+            }
+
+            @Override
+            public void onLongPress(View view) {
+
+            }
+        });
+        mHeadIconList.add(incubatorIcon);
+
+        // Share the same on move listener for moving in the same time
+        HeadIconView.OnMoveListener moveListener = new HeadIconView.OnMoveListener() {
+            @Override
+            public void onMove(int initialX, int initialY, float initialTouchX, float initialTouchY, MotionEvent event) {
+                for(HeadIconView icon : mHeadIconList) {
+                    icon.moveIconDefault(initialX, initialY, initialTouchX, initialTouchY, event);
+                }
+            }
+        };
+
+        // Set all to add
+        for(HeadIconView icon : mHeadIconList) {
+            icon.addView();
+            icon.setOnMoveListener(moveListener);
+        }
+
+        // Set default visibility
+        mHeadIconList.get(IDX_START_ICON).setVisibility(View.INVISIBLE);
+        mHeadIconList.get(IDX_HOME_ICON).setVisibility(View.INVISIBLE);
+        mHeadIconList.get(IDX_INCUBATOR_ICON).setVisibility(View.INVISIBLE);
     }
 
     private void initGameControlButtons() {
+        final int mInitialPositionX = 0;
+        final int mInitialPositionY = 150;
+
         mUpButton = new Button(this);
         mUpButton.setText(getString(R.string.walk_up_button));
         mUpButton.setWidth(30);
@@ -303,200 +310,6 @@ public class HeadService extends Service {
         mRightButton.setOnClickListener(mWalkButtonController);
     }
 
-    private void initGamePanelTouchListeners() {
-        mHeadIconView.setOnTouchListener(new View.OnTouchListener() {
-            private int initialX;
-            private int initialY;
-            private float initialTouchX;
-            private float initialTouchY;
-            private long touchDownTime;
-            private long touchUpTime;
-            private int touchCount = 0;
-
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        touchDownTime = System.currentTimeMillis();
-                        initialX = mHeadIconLayoutParams.x;
-                        initialY = mHeadIconLayoutParams.y;
-                        initialTouchX = event.getRawX();
-                        initialTouchY = event.getRawY();
-                        return true;
-                    case MotionEvent.ACTION_UP:
-                        touchUpTime = System.currentTimeMillis();
-                        long elapsedTime = touchUpTime - touchDownTime;
-                        if (elapsedTime < mTouchTapThreshold) {
-                            touchCount++;
-                            if (touchCount % 2 == 0) {
-                                mHeadStartView.setVisibility(View.INVISIBLE);
-                                mHeadHomeView.setVisibility(View.INVISIBLE);
-                                mHeadIncubateView.setVisibility(View.INVISIBLE);
-                            } else {
-                                mHeadStartView.setVisibility(View.VISIBLE);
-                                mHeadHomeView.setVisibility(View.VISIBLE);
-                                mHeadIncubateView.setVisibility(View.VISIBLE);
-                            }
-                        } else if (elapsedTime > mTouchLongPressThreshold) {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.myDialog))
-                                    .setTitle(getString(R.string.headservice_stop_title))
-                                    .setMessage(getString(R.string.headservice_stop_info))
-                                    .setPositiveButton(getString(R.string.headservice_stop_button), new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            // Let's do some background stuff
-                                            StopService();
-                                        }
-                                    })
-                                    .setNegativeButton(getString(R.string.startup_cancel), new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                        }
-                                    });
-                            AlertDialog alert = builder.create();
-                            alert.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-                            alert.show();
-                        }
-                        return true;
-                    case MotionEvent.ACTION_MOVE:
-                        MoveIcons(initialX, initialY, initialTouchX, initialTouchY, event);
-                        return true;
-                }
-                return false;
-            }
-        });
-
-        mHeadStartView.setOnTouchListener(new View.OnTouchListener() {
-            private int initialX;
-            private int initialY;
-            private float initialTouchX;
-            private float initialTouchY;
-            private long touchDownTime;
-            private long touchUpTime;
-
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        touchDownTime = System.currentTimeMillis();
-                        initialX = mHeadIconLayoutParams.x;
-                        initialY = mHeadIconLayoutParams.y;
-                        initialTouchX = event.getRawX();
-                        initialTouchY = event.getRawY();
-                        return true;
-                    case MotionEvent.ACTION_UP:
-                        touchUpTime = System.currentTimeMillis();
-                        long elapsedTime = touchUpTime - touchDownTime;
-                        if (elapsedTime < mTouchTapThreshold) {
-                            mFreeWalking = !mFreeWalking;
-                            mMessageText = mFreeWalking ? "Starting service" : "Stopping service";
-                            configFreeWalking(mFreeWalking);
-                            mHeadStartView.setImageResource(mFreeWalking ? R.drawable.ic_pause : R.drawable.ic_play);
-                        }
-                        return true;
-                    case MotionEvent.ACTION_MOVE:
-                        MoveIcons(initialX, initialY, initialTouchX, initialTouchY, event);
-                        return true;
-                }
-                return false;
-            }
-        });
-
-        mHeadHomeView.setOnTouchListener(new View.OnTouchListener() {
-            private int initialX;
-            private int initialY;
-            private float initialTouchX;
-            private float initialTouchY;
-            private long touchDownTime;
-            private long touchUpTime;
-
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        touchDownTime = System.currentTimeMillis();
-                        initialX = mHeadIconLayoutParams.x;
-                        initialY = mHeadIconLayoutParams.y;
-                        initialTouchX = event.getRawX();
-                        initialTouchY = event.getRawY();
-                        return true;
-                    case MotionEvent.ACTION_UP:
-                        touchUpTime = System.currentTimeMillis();
-                        long elapsedTime = touchUpTime - touchDownTime;
-                        if (elapsedTime < mTouchTapThreshold) {
-                            Log.d(TAG, "Game stopped.");
-                        }
-                        return true;
-                    case MotionEvent.ACTION_MOVE:
-                        MoveIcons(initialX, initialY, initialTouchX, initialTouchY, event);
-                        return true;
-                }
-                return false;
-            }
-        });
-
-        mHeadIncubateView.setOnTouchListener(new View.OnTouchListener() {
-            private int initialX;
-            private int initialY;
-            private float initialTouchX;
-            private float initialTouchY;
-            private long touchDownTime;
-            private long touchUpTime;
-
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        touchDownTime = System.currentTimeMillis();
-                        initialX = mHeadIconLayoutParams.x;
-                        initialY = mHeadIconLayoutParams.y;
-                        initialTouchX = event.getRawX();
-                        initialTouchY = event.getRawY();
-                        return true;
-                    case MotionEvent.ACTION_UP:
-                        touchUpTime = System.currentTimeMillis();
-                        long elapsedTime = touchUpTime - touchDownTime;
-                        if (elapsedTime < mTouchTapThreshold) {
-                            if (mAutoIncubating) {
-                                Log.d(TAG, "Stop auto incubating");
-                                mMessageText = "Stop Auto Incubating";
-                                mAutoIncubating = false;
-                            } else {
-                                Log.d(TAG, "Start auto incubating");
-                                mMessageText = "Start Auto Incubating";
-                                mAutoIncubating = true;
-                                startAutoIncubating();
-                            }
-                        }
-                        return true;
-                    case MotionEvent.ACTION_MOVE:
-                        MoveIcons(initialX, initialY, initialTouchX, initialTouchY, event);
-                        return true;
-                }
-                return false;
-            }
-        });
-    }
-
-    private void MoveIcons(int initialX, int initialY, float initialTouchX, float initialTouchY, MotionEvent event) {
-        mHeadIconLayoutParams.x = initialX + (int) (event.getRawX() - initialTouchX);
-        mHeadIconLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY);
-        mMsgTextLayoutParams.x = initialX + (int) (event.getRawX() - initialTouchX) + mTextOffsetX;
-        mMsgTextLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY) + mTextOffsetY;
-        mHeadStartLayoutParams.x = initialX + (int) (event.getRawX() - initialTouchX) + mToolOffsetX;
-        mHeadStartLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY) + mToolOffsetY;
-        mHeadHomeLayoutParams.x = initialX + (int) (event.getRawX() - initialTouchX) + mGameOffsetX;
-        mHeadHomeLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY) + mGameOffsetY;
-        mHeadIncubateLayoutParams.x = initialX + (int) (event.getRawX() - initialTouchX) + mIncubateOffsetX;
-        mHeadIncubateLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY) + mIncubateOffsetY;
-
-        mWindowManager.updateViewLayout(mHeadIconView, mHeadIconLayoutParams);
-        mWindowManager.updateViewLayout(mHeadMsgTextView, mMsgTextLayoutParams);
-        mWindowManager.updateViewLayout(mHeadStartView, mHeadStartLayoutParams);
-        mWindowManager.updateViewLayout(mHeadHomeView, mHeadHomeLayoutParams);
-        mWindowManager.updateViewLayout(mHeadIncubateView, mHeadIncubateLayoutParams);
-    }
-
     private void StopService() {
         stopSelf();
     }
@@ -507,11 +320,9 @@ public class HeadService extends Service {
         mThreadStart = false;
 
         // Game tool
-        if (mHeadIconView != null) mWindowManager.removeView(mHeadIconView);
-        if (mHeadMsgTextView != null) mWindowManager.removeView(mHeadMsgTextView);
-        if (mHeadStartView != null) mWindowManager.removeView(mHeadStartView);
-        if (mHeadHomeView != null) mWindowManager.removeView(mHeadHomeView);
-        if (mHeadIncubateView != null) mWindowManager.removeView(mHeadIncubateView);
+        for (HeadIconView icon : mHeadIconList) {
+            icon.removeView();
+        }
 
         // Game control tool
         if (mUpButton != null) mWindowManager.removeView(mUpButton);
@@ -522,8 +333,46 @@ public class HeadService extends Service {
         if (mFakeLocationManager != null) mFakeLocationManager.setEnable(false);
     }
 
-    private void configFreeWalking(boolean on) {
-        if (on) {
+    private void configHeadIconShowing() {
+        mTouchHeadIconCount++;
+        if (mTouchHeadIconCount % 2 == 0) {
+            mHeadIconList.get(IDX_START_ICON).setVisibility(View.INVISIBLE);
+            mHeadIconList.get(IDX_HOME_ICON).setVisibility(View.INVISIBLE);
+            mHeadIconList.get(IDX_INCUBATOR_ICON).setVisibility(View.INVISIBLE);
+        } else {
+            mHeadIconList.get(IDX_START_ICON).setVisibility(View.VISIBLE);
+            mHeadIconList.get(IDX_HOME_ICON).setVisibility(View.VISIBLE);
+            mHeadIconList.get(IDX_INCUBATOR_ICON).setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void showExitConfirmDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.myDialog))
+                .setTitle(getString(R.string.headservice_stop_title))
+                .setMessage(getString(R.string.headservice_stop_info))
+                .setPositiveButton(getString(R.string.headservice_stop_button), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Let's do some background stuff
+                        StopService();
+                    }
+                })
+                .setNegativeButton(getString(R.string.startup_cancel), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        alert.show();
+    }
+
+    private void configFreeWalking() {
+        mFreeWalking = !mFreeWalking;
+        mMessageText = mFreeWalking ? "Starting service" : "Stopping service";
+        mHeadIconList.get(IDX_START_ICON).getImageView().setImageResource(mFreeWalking ? R.drawable.ic_pause : R.drawable.ic_play);
+
+        if (mFreeWalking) {
             mUpButton.setVisibility(View.VISIBLE);
             mDownButton.setVisibility(View.VISIBLE);
             mLeftButton.setVisibility(View.VISIBLE);
@@ -533,6 +382,19 @@ public class HeadService extends Service {
             mDownButton.setVisibility(View.INVISIBLE);
             mLeftButton.setVisibility(View.INVISIBLE);
             mRightButton.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    private void configAutoIncubating() {
+        if (mAutoIncubating) {
+            Log.d(TAG, "Stop auto incubating");
+            mMessageText = "Stop Auto Incubating";
+            mAutoIncubating = false;
+        } else {
+            Log.d(TAG, "Start auto incubating");
+            mMessageText = "Start Auto Incubating";
+            mAutoIncubating = true;
+            startAutoIncubating();
         }
     }
 
