@@ -21,7 +21,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.PixelFormat;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.content.ContextCompat;
@@ -32,7 +31,6 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -45,32 +43,31 @@ import java.util.ArrayList;
 
 public class HeadService extends Service {
     private static final String TAG = "PokemonGoGo";
+    private final Handler mHandler = new Handler();
     private Context mContext;
     private FakeLocationManager mFakeLocationManager;
 
+    // View objects
     private WindowManager mWindowManager;
-    ArrayList<HeadIconView> mHeadIconList;
+    private ArrayList<HeadIconView> mHeadIconList;
+    private ArrayList<HeadIconView> mDirectionIconList;
     private static final int IDX_HEAD_ICON = 0;
     private static final int IDX_MSG_TEXT = 1;
     private static final int IDX_START_ICON = 2;
     private static final int IDX_HOME_ICON = 3;
     private static final int IDX_INCUBATOR_ICON = 4;
-
-    private String mMessageText = "Now stopping";
-    private boolean mThreadStart = false;
-    private GetMessageThread mMessageThread;
-
-    private final Handler mHandler = new Handler();
-    private int mTouchHeadIconCount = 0;
+    private static final int IDX_UP_BUTTON = 0;
+    private static final int IDX_DOWN_BUTTON = 1;
+    private static final int IDX_LEFT_BUTTON = 2;
+    private static final int IDX_RIGHT_BUTTON = 3;
 
     // game control
+    private String mMessageText = "Now stopping";
+    private boolean mThreadStart = false;
     private boolean mFreeWalking = false;
     private boolean mAutoIncubating = false;
-    private Button mUpButton, mDownButton, mLeftButton, mRightButton;
-    WindowManager.LayoutParams mUpButtonLayoutParams, mDownButtonLayoutParams;
-    WindowManager.LayoutParams mLeftButtonLayoutParams, mRightButtonLayoutParams;
-    private StartAutoIncubatingThread mAIThread;
     private double mWalkSpeed = 1.0;
+    private int mTouchHeadIconCount = 0;
 
     /*
      * Runnable threads
@@ -99,12 +96,13 @@ public class HeadService extends Service {
         mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
 
         // On screen view initializing, do not mess around here
-        initGameControlButtons();
         initGamePanelViews();
+        initGameControlButtons();
 
         mThreadStart = true;
-        mMessageThread = new GetMessageThread();
-        mMessageThread.start();
+        GetMessageThread msgThread;
+        msgThread = new GetMessageThread();
+        msgThread.start();
 
         // Config fake location manager
         mFakeLocationManager = new FakeLocationManager(mContext, null);
@@ -118,7 +116,7 @@ public class HeadService extends Service {
 
         // Head Icon
         HeadIconView headIcon = new HeadIconView(new ImageView(this), mWindowManager, 0, 0);
-        ((ImageView) headIcon.getView()).setImageResource(R.mipmap.ic_launcher);
+        headIcon.getImageView().setImageResource(R.mipmap.ic_launcher);
         headIcon.setOnTapListener(new HeadIconView.OnTapListener() {
             @Override
             public void onTap(View view) {
@@ -134,14 +132,14 @@ public class HeadService extends Service {
 
         // Message Text Icon
         HeadIconView msgText = new HeadIconView(new TextView(this), mWindowManager, 120, 13);
-        ((TextView) msgText.getView()).setText("");
-        ((TextView) msgText.getView()).setTextColor(Color.BLACK);
+        msgText.getTextView().setText("");
+        msgText.getTextView().setTextColor(Color.BLACK);
         msgText.getView().setBackgroundColor(Color.WHITE);
         mHeadIconList.add(msgText);
 
         // Start Game Pad Icon
         HeadIconView startIcon = new HeadIconView(new ImageView(this), mWindowManager, 0, 75);
-        ((ImageView) startIcon.getView()).setImageResource(R.drawable.ic_play);
+        startIcon.getImageView().setImageResource(R.drawable.ic_play);
         startIcon.setOnTapListener(new HeadIconView.OnTapListener() {
             @Override
             public void onTap(View view) {
@@ -157,7 +155,7 @@ public class HeadService extends Service {
 
         // Home Icon
         HeadIconView homeIcon = new HeadIconView(new ImageView(this), mWindowManager, 80, 85);
-        ((ImageView) homeIcon.getView()).setImageResource(R.drawable.ic_location_pin);
+        homeIcon.getImageView().setImageResource(R.drawable.ic_location_pin);
         homeIcon.setOnTapListener(new HeadIconView.OnTapListener() {
             @Override
             public void onTap(View view) {
@@ -173,7 +171,7 @@ public class HeadService extends Service {
 
         // Incubator Icon
         HeadIconView incubatorIcon = new HeadIconView(new ImageView(this), mWindowManager, 150, 85);
-        ((ImageView) incubatorIcon.getView()).setImageResource(R.drawable.ic_egg);
+        incubatorIcon.getImageView().setImageResource(R.drawable.ic_egg_disabled);
         incubatorIcon.setOnTapListener(new HeadIconView.OnTapListener() {
             @Override
             public void onTap(View view) {
@@ -211,103 +209,86 @@ public class HeadService extends Service {
     }
 
     private void initGameControlButtons() {
-        final int mInitialPositionX = 0;
-        final int mInitialPositionY = 150;
+        mDirectionIconList = new ArrayList<>();
 
-        mUpButton = new Button(this);
-        mUpButton.setText(getString(R.string.walk_up_button));
-        mUpButton.setWidth(30);
-        mUpButton.setHeight(30);
-        mUpButton.setBackgroundColor(ContextCompat.getColor(mContext, R.color.button_half_transparent));
-        mDownButton = new Button(this);
-        mDownButton.setText(getString(R.string.walk_down_button));
-        mDownButton.setWidth(30);
-        mDownButton.setHeight(30);
-        mDownButton.setBackgroundColor(ContextCompat.getColor(mContext, R.color.button_half_transparent));
-        mLeftButton = new Button(this);
-        mLeftButton.setText(getString(R.string.walk_left_button));
-        mLeftButton.setWidth(30);
-        mLeftButton.setHeight(30);
-        mLeftButton.setBackgroundColor(ContextCompat.getColor(mContext, R.color.button_half_transparent));
-        mRightButton = new Button(this);
-        mRightButton.setText(getString(R.string.walk_right_button));
-        mRightButton.setWidth(30);
-        mRightButton.setHeight(30);
-        mRightButton.setBackgroundColor(ContextCompat.getColor(mContext, R.color.button_half_transparent));
-
-        mUpButtonLayoutParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT);
-
-        mDownButtonLayoutParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT);
-
-        mLeftButtonLayoutParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT);
-
-        mRightButtonLayoutParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT);
-
-        mUpButtonLayoutParams.gravity = Gravity.BOTTOM | Gravity.START;
-        mUpButtonLayoutParams.x = mInitialPositionX + 150;
-        mUpButtonLayoutParams.y = mInitialPositionY + 200;
-        mDownButtonLayoutParams.gravity = Gravity.BOTTOM | Gravity.START;
-        mDownButtonLayoutParams.x = mInitialPositionX + 150;
-        mDownButtonLayoutParams.y = mInitialPositionY;
-        mLeftButtonLayoutParams.gravity = Gravity.BOTTOM | Gravity.START;
-        mLeftButtonLayoutParams.x = mInitialPositionX + 50;
-        mLeftButtonLayoutParams.y = mInitialPositionY + 100;
-        mRightButtonLayoutParams.gravity = Gravity.BOTTOM | Gravity.START;
-        mRightButtonLayoutParams.x = mInitialPositionX + 230;
-        mRightButtonLayoutParams.y = mInitialPositionY + 100;
-
-        mWindowManager.addView(mUpButton, mUpButtonLayoutParams);
-        mWindowManager.addView(mDownButton, mDownButtonLayoutParams);
-        mWindowManager.addView(mLeftButton, mLeftButtonLayoutParams);
-        mWindowManager.addView(mRightButton, mRightButtonLayoutParams);
-
-        mUpButton.setVisibility(View.INVISIBLE);
-        mDownButton.setVisibility(View.INVISIBLE);
-        mLeftButton.setVisibility(View.INVISIBLE);
-        mRightButton.setVisibility(View.INVISIBLE);
-
-        final View.OnClickListener mWalkButtonController = new View.OnClickListener() {
+        // Up button
+        HeadIconView upButton = new HeadIconView(new ImageView(this), mWindowManager, 130, 160);
+        upButton.getImageView().setImageResource(R.drawable.ic_arrow_up);
+        upButton.getImageView().setBackgroundColor(ContextCompat.getColor(mContext, R.color.button_half_transparent));
+        upButton.setOnTapListener(new HeadIconView.OnTapListener() {
             @Override
-            public void onClick(View view) {
-                // make sure the speed does not get override by auto incubator
+            public void onTap(View view) {
                 mFakeLocationManager.setSpeed(mWalkSpeed);
-
-                if (view.equals(mUpButton)) {
-                    mFakeLocationManager.walkPace(FakeLocation.NORTH, 1.0);
-                } else if (view.equals(mDownButton)) {
-                    mFakeLocationManager.walkPace(FakeLocation.SOUTH, 1.0);
-                } else if (view.equals(mLeftButton)) {
-                    mFakeLocationManager.walkPace(FakeLocation.EAST, 1.0);
-                } else if (view.equals(mRightButton)) {
-                    mFakeLocationManager.walkPace(FakeLocation.WEST, 1.0);
-                }
+                mFakeLocationManager.walkPace(FakeLocation.NORTH, 1.0);
             }
-        };
 
-        mUpButton.setOnClickListener(mWalkButtonController);
-        mDownButton.setOnClickListener(mWalkButtonController);
-        mLeftButton.setOnClickListener(mWalkButtonController);
-        mRightButton.setOnClickListener(mWalkButtonController);
+            @Override
+            public void onLongPress(View view) {
+
+            }
+        });
+        mDirectionIconList.add(upButton);
+
+        // Down button
+        HeadIconView downButton = new HeadIconView(new ImageView(this), mWindowManager, 130, 0);
+        downButton.getImageView().setImageResource(R.drawable.ic_arrow_down);
+        downButton.getImageView().setBackgroundColor(ContextCompat.getColor(mContext, R.color.button_half_transparent));
+        downButton.setOnTapListener(new HeadIconView.OnTapListener() {
+            @Override
+            public void onTap(View view) {
+                mFakeLocationManager.setSpeed(mWalkSpeed);
+                mFakeLocationManager.walkPace(FakeLocation.SOUTH, 1.0);
+            }
+
+            @Override
+            public void onLongPress(View view) {
+
+            }
+        });
+        mDirectionIconList.add(downButton);
+
+        // Left button
+        HeadIconView leftButton = new HeadIconView(new ImageView(this), mWindowManager, 50, 80);
+        leftButton.getImageView().setImageResource(R.drawable.ic_arrow_left);
+        leftButton.getImageView().setBackgroundColor(ContextCompat.getColor(mContext, R.color.button_half_transparent));
+        leftButton.setOnTapListener(new HeadIconView.OnTapListener() {
+            @Override
+            public void onTap(View view) {
+                mFakeLocationManager.setSpeed(mWalkSpeed);
+                mFakeLocationManager.walkPace(FakeLocation.WEST, 1.0);
+            }
+
+            @Override
+            public void onLongPress(View view) {
+
+            }
+        });
+        mDirectionIconList.add(leftButton);
+
+        // Right button
+        HeadIconView rightButton = new HeadIconView(new ImageView(this), mWindowManager, 210, 80);
+        rightButton.getImageView().setImageResource(R.drawable.ic_arrow_right);
+        rightButton.getImageView().setBackgroundColor(ContextCompat.getColor(mContext, R.color.button_half_transparent));
+        rightButton.setOnTapListener(new HeadIconView.OnTapListener() {
+            @Override
+            public void onTap(View view) {
+                mFakeLocationManager.setSpeed(mWalkSpeed);
+                mFakeLocationManager.walkPace(FakeLocation.EAST, 1.0);
+            }
+
+            @Override
+            public void onLongPress(View view) {
+
+            }
+        });
+        mDirectionIconList.add(rightButton);
+
+        // add view and set invisible
+        for (HeadIconView icon : mDirectionIconList) {
+            icon.setVisibility(View.INVISIBLE);
+            icon.setGravity(Gravity.BOTTOM | Gravity.START, false);
+            icon.addView();
+        }
     }
 
     private void StopService() {
@@ -325,10 +306,9 @@ public class HeadService extends Service {
         }
 
         // Game control tool
-        if (mUpButton != null) mWindowManager.removeView(mUpButton);
-        if (mDownButton != null) mWindowManager.removeView(mDownButton);
-        if (mLeftButton != null) mWindowManager.removeView(mLeftButton);
-        if (mRightButton != null) mWindowManager.removeView(mRightButton);
+        for (HeadIconView icon : mDirectionIconList) {
+            icon.removeView();
+        }
 
         if (mFakeLocationManager != null) mFakeLocationManager.setEnable(false);
     }
@@ -372,16 +352,8 @@ public class HeadService extends Service {
         mMessageText = mFreeWalking ? "Starting service" : "Stopping service";
         mHeadIconList.get(IDX_START_ICON).getImageView().setImageResource(mFreeWalking ? R.drawable.ic_pause : R.drawable.ic_play);
 
-        if (mFreeWalking) {
-            mUpButton.setVisibility(View.VISIBLE);
-            mDownButton.setVisibility(View.VISIBLE);
-            mLeftButton.setVisibility(View.VISIBLE);
-            mRightButton.setVisibility(View.VISIBLE);
-        } else {
-            mUpButton.setVisibility(View.INVISIBLE);
-            mDownButton.setVisibility(View.INVISIBLE);
-            mLeftButton.setVisibility(View.INVISIBLE);
-            mRightButton.setVisibility(View.INVISIBLE);
+        for (HeadIconView icon : mDirectionIconList) {
+            icon.setVisibility(mFreeWalking ? View.VISIBLE : View.INVISIBLE);
         }
     }
 
@@ -389,10 +361,12 @@ public class HeadService extends Service {
         if (mAutoIncubating) {
             Log.d(TAG, "Stop auto incubating");
             mMessageText = "Stop Auto Incubating";
+            mHeadIconList.get(IDX_INCUBATOR_ICON).getImageView().setImageResource(R.drawable.ic_egg_disabled);
             mAutoIncubating = false;
         } else {
             Log.d(TAG, "Start auto incubating");
             mMessageText = "Start Auto Incubating";
+            mHeadIconList.get(IDX_INCUBATOR_ICON).getImageView().setImageResource(R.drawable.ic_egg_enabled);
             mAutoIncubating = true;
             startAutoIncubating();
         }
@@ -413,8 +387,7 @@ public class HeadService extends Service {
     }
 
     void startAutoIncubating() {
-        mAIThread = new StartAutoIncubatingThread();
-        mAIThread.start();
+        new StartAutoIncubatingThread().start();
     }
 
     class StartAutoIncubatingThread extends Thread {
