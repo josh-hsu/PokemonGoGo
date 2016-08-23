@@ -56,6 +56,7 @@ public class HeadService extends Service {
     private static final int IDX_START_ICON = 2;
     private static final int IDX_HOME_ICON = 3;
     private static final int IDX_INCUBATOR_ICON = 4;
+    private static final int IDX_SPEED_ICON = 5;
     private static final int IDX_UP_BUTTON = 0;
     private static final int IDX_DOWN_BUTTON = 1;
     private static final int IDX_LEFT_BUTTON = 2;
@@ -154,7 +155,7 @@ public class HeadService extends Service {
         mHeadIconList.add(startIcon);
 
         // Home Icon
-        HeadIconView homeIcon = new HeadIconView(new ImageView(this), mWindowManager, 80, 85);
+        HeadIconView homeIcon = new HeadIconView(new ImageView(this), mWindowManager, 80, 90);
         homeIcon.getImageView().setImageResource(R.drawable.ic_location_pin);
         homeIcon.setOnTapListener(new HeadIconView.OnTapListener() {
             @Override
@@ -170,7 +171,7 @@ public class HeadService extends Service {
         mHeadIconList.add(homeIcon);
 
         // Incubator Icon
-        HeadIconView incubatorIcon = new HeadIconView(new ImageView(this), mWindowManager, 150, 85);
+        HeadIconView incubatorIcon = new HeadIconView(new ImageView(this), mWindowManager, 150, 90);
         incubatorIcon.getImageView().setImageResource(R.drawable.ic_egg_disabled);
         incubatorIcon.setOnTapListener(new HeadIconView.OnTapListener() {
             @Override
@@ -185,6 +186,23 @@ public class HeadService extends Service {
             }
         });
         mHeadIconList.add(incubatorIcon);
+
+        // Speed control Icon
+        HeadIconView speedIcon = new HeadIconView(new ImageView(this), mWindowManager, 220, 85);
+        speedIcon.getImageView().setImageResource(R.drawable.ic_one);
+        speedIcon.setOnTapListener(new HeadIconView.OnTapListener() {
+            @Override
+            public void onTap(View view) {
+                Log.d(TAG, "config speed");
+                configSpeed();
+            }
+
+            @Override
+            public void onLongPress(View view) {
+
+            }
+        });
+        mHeadIconList.add(speedIcon);
 
         // Share the same on move listener for moving in the same time
         HeadIconView.OnMoveListener moveListener = new HeadIconView.OnMoveListener() {
@@ -206,6 +224,7 @@ public class HeadService extends Service {
         mHeadIconList.get(IDX_START_ICON).setVisibility(View.INVISIBLE);
         mHeadIconList.get(IDX_HOME_ICON).setVisibility(View.INVISIBLE);
         mHeadIconList.get(IDX_INCUBATOR_ICON).setVisibility(View.INVISIBLE);
+        mHeadIconList.get(IDX_SPEED_ICON).setVisibility(View.INVISIBLE);
     }
 
     private void initGameControlButtons() {
@@ -255,7 +274,7 @@ public class HeadService extends Service {
             @Override
             public void onTap(View view) {
                 mFakeLocationManager.setSpeed(mWalkSpeed);
-                mFakeLocationManager.walkPace(FakeLocation.WEST, 1.0);
+                mFakeLocationManager.walkPace(FakeLocation.EAST, 1.0);
             }
 
             @Override
@@ -273,7 +292,7 @@ public class HeadService extends Service {
             @Override
             public void onTap(View view) {
                 mFakeLocationManager.setSpeed(mWalkSpeed);
-                mFakeLocationManager.walkPace(FakeLocation.EAST, 1.0);
+                mFakeLocationManager.walkPace(FakeLocation.WEST, 1.0);
             }
 
             @Override
@@ -319,10 +338,12 @@ public class HeadService extends Service {
             mHeadIconList.get(IDX_START_ICON).setVisibility(View.INVISIBLE);
             mHeadIconList.get(IDX_HOME_ICON).setVisibility(View.INVISIBLE);
             mHeadIconList.get(IDX_INCUBATOR_ICON).setVisibility(View.INVISIBLE);
+            mHeadIconList.get(IDX_SPEED_ICON).setVisibility(View.INVISIBLE);
         } else {
             mHeadIconList.get(IDX_START_ICON).setVisibility(View.VISIBLE);
             mHeadIconList.get(IDX_HOME_ICON).setVisibility(View.VISIBLE);
             mHeadIconList.get(IDX_INCUBATOR_ICON).setVisibility(View.VISIBLE);
+            mHeadIconList.get(IDX_SPEED_ICON).setVisibility(View.VISIBLE);
         }
     }
 
@@ -369,6 +390,32 @@ public class HeadService extends Service {
             mHeadIconList.get(IDX_INCUBATOR_ICON).getImageView().setImageResource(R.drawable.ic_egg_enabled);
             mAutoIncubating = true;
             startAutoIncubating();
+        }
+    }
+
+    private void configSpeed() {
+        ImageView iv = mHeadIconList.get(IDX_SPEED_ICON).getImageView();
+        if (mWalkSpeed == 1.0) {
+            mWalkSpeed = 2.0;
+            iv.setImageResource(R.drawable.ic_two);
+        } else if (mWalkSpeed == 2.0) {
+            mWalkSpeed = 4.0;
+            iv.setImageResource(R.drawable.ic_three);
+        } else if (mWalkSpeed == 4.0) {
+            mWalkSpeed = 6.0;
+            iv.setImageResource(R.drawable.ic_four);
+        } else if (mWalkSpeed == 6.0) {
+            mWalkSpeed = 8.0;
+            iv.setImageResource(R.drawable.ic_five);
+        } else if (mWalkSpeed == 8.0) {
+            mWalkSpeed = 10.0;
+            iv.setImageResource(R.drawable.ic_six);
+        } else if (mWalkSpeed == 10.0) {
+            mWalkSpeed = 0.7;
+            iv.setImageResource(R.drawable.ic_slow);
+        } else if (mWalkSpeed == 0.7) {
+            mWalkSpeed = 1.0;
+            iv.setImageResource(R.drawable.ic_one);
         }
     }
 
