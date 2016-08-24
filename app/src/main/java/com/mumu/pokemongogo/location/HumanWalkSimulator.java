@@ -37,7 +37,7 @@ public class HumanWalkSimulator {
     private int mCurrentCount = 0;
     private final int[] mPossibilityEntry = {FakeLocation.NORTH, FakeLocation.SOUTH,
             FakeLocation.WEST, FakeLocation.EAST};
-    private double[] mPossibilityList = new double[4];
+    private double[] mPossibilityList = new double[8];
     private double[] mPossibilityStay = new double[2];
 
     public HumanWalkSimulator() {
@@ -52,10 +52,14 @@ public class HumanWalkSimulator {
     }
 
     public void resetSimulator() {
-        mPossibilityList[0] = 0.25;
-        mPossibilityList[1] = 0.25;
-        mPossibilityList[2] = 0.25;
-        mPossibilityList[3] = 0.25;
+        mPossibilityList[0] = 0.125;
+        mPossibilityList[1] = 0.125;
+        mPossibilityList[2] = 0.125;
+        mPossibilityList[3] = 0.125;
+        mPossibilityList[4] = 0.125;
+        mPossibilityList[5] = 0.125;
+        mPossibilityList[6] = 0.125;
+        mPossibilityList[7] = 0.125;
 
         mPossibilityStay[0] = 1 - STAY_POSSIBILITY; // index 0 also says NO
         mPossibilityStay[1] = STAY_POSSIBILITY;

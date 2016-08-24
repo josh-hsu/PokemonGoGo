@@ -101,9 +101,7 @@ public class HeadService extends Service {
         initGameControlButtons();
 
         mThreadStart = true;
-        GetMessageThread msgThread;
-        msgThread = new GetMessageThread();
-        msgThread.start();
+        new GetMessageThread().start();
 
         // Config fake location manager
         mFakeLocationManager = new FakeLocationManager(mContext, null);
@@ -274,7 +272,7 @@ public class HeadService extends Service {
             @Override
             public void onTap(View view) {
                 mFakeLocationManager.setSpeed(mWalkSpeed);
-                mFakeLocationManager.walkPace(FakeLocation.EAST, 1.0);
+                mFakeLocationManager.walkPace(FakeLocation.WEST, 1.0);
             }
 
             @Override
@@ -292,7 +290,7 @@ public class HeadService extends Service {
             @Override
             public void onTap(View view) {
                 mFakeLocationManager.setSpeed(mWalkSpeed);
-                mFakeLocationManager.walkPace(FakeLocation.WEST, 1.0);
+                mFakeLocationManager.walkPace(FakeLocation.EAST, 1.0);
             }
 
             @Override
@@ -301,6 +299,78 @@ public class HeadService extends Service {
             }
         });
         mDirectionIconList.add(rightButton);
+
+        // North West button
+        HeadIconView upLeftButton = new HeadIconView(new ImageView(this), mWindowManager, 50, 160);
+        upLeftButton.getImageView().setImageResource(R.drawable.ic_arrow_squart);
+        upLeftButton.getImageView().setBackgroundColor(ContextCompat.getColor(mContext, R.color.button_half_transparent));
+        upLeftButton.setOnTapListener(new HeadIconView.OnTapListener() {
+            @Override
+            public void onTap(View view) {
+                mFakeLocationManager.setSpeed(mWalkSpeed);
+                mFakeLocationManager.walkPace(FakeLocation.NORTHWEST, 1.0);
+            }
+
+            @Override
+            public void onLongPress(View view) {
+
+            }
+        });
+        mDirectionIconList.add(upLeftButton);
+
+        // West South button
+        HeadIconView leftDownButton = new HeadIconView(new ImageView(this), mWindowManager, 50, 0);
+        leftDownButton.getImageView().setImageResource(R.drawable.ic_arrow_squart);
+        leftDownButton.getImageView().setBackgroundColor(ContextCompat.getColor(mContext, R.color.button_half_transparent));
+        leftDownButton.setOnTapListener(new HeadIconView.OnTapListener() {
+            @Override
+            public void onTap(View view) {
+                mFakeLocationManager.setSpeed(mWalkSpeed);
+                mFakeLocationManager.walkPace(FakeLocation.WESTSOUTH, 1.0);
+            }
+
+            @Override
+            public void onLongPress(View view) {
+
+            }
+        });
+        mDirectionIconList.add(leftDownButton);
+
+        // South East button
+        HeadIconView downRightButton = new HeadIconView(new ImageView(this), mWindowManager, 210, 0);
+        downRightButton.getImageView().setImageResource(R.drawable.ic_arrow_squart);
+        downRightButton.getImageView().setBackgroundColor(ContextCompat.getColor(mContext, R.color.button_half_transparent));
+        downRightButton.setOnTapListener(new HeadIconView.OnTapListener() {
+            @Override
+            public void onTap(View view) {
+                mFakeLocationManager.setSpeed(mWalkSpeed);
+                mFakeLocationManager.walkPace(FakeLocation.SOUTHEAST, 1.0);
+            }
+
+            @Override
+            public void onLongPress(View view) {
+
+            }
+        });
+        mDirectionIconList.add(downRightButton);
+
+        // East North button
+        HeadIconView rightUpButton = new HeadIconView(new ImageView(this), mWindowManager, 210, 160);
+        rightUpButton.getImageView().setImageResource(R.drawable.ic_arrow_squart);
+        rightUpButton.getImageView().setBackgroundColor(ContextCompat.getColor(mContext, R.color.button_half_transparent));
+        rightUpButton.setOnTapListener(new HeadIconView.OnTapListener() {
+            @Override
+            public void onTap(View view) {
+                mFakeLocationManager.setSpeed(mWalkSpeed);
+                mFakeLocationManager.walkPace(FakeLocation.EASTNORTH, 1.0);
+            }
+
+            @Override
+            public void onLongPress(View view) {
+
+            }
+        });
+        mDirectionIconList.add(rightUpButton);
 
         // add view and set invisible
         for (HeadIconView icon : mDirectionIconList) {
@@ -402,15 +472,15 @@ public class HeadService extends Service {
             mWalkSpeed = 4.0;
             iv.setImageResource(R.drawable.ic_three);
         } else if (mWalkSpeed == 4.0) {
-            mWalkSpeed = 6.0;
-            iv.setImageResource(R.drawable.ic_four);
-        } else if (mWalkSpeed == 6.0) {
             mWalkSpeed = 8.0;
-            iv.setImageResource(R.drawable.ic_five);
+            iv.setImageResource(R.drawable.ic_four);
         } else if (mWalkSpeed == 8.0) {
-            mWalkSpeed = 10.0;
+            mWalkSpeed = 32.0;
+            iv.setImageResource(R.drawable.ic_five);
+        } else if (mWalkSpeed == 32.0) {
+            mWalkSpeed = 128.0;
             iv.setImageResource(R.drawable.ic_six);
-        } else if (mWalkSpeed == 10.0) {
+        } else if (mWalkSpeed == 128.0) {
             mWalkSpeed = 0.7;
             iv.setImageResource(R.drawable.ic_slow);
         } else if (mWalkSpeed == 0.7) {
@@ -443,7 +513,7 @@ public class HeadService extends Service {
 
             while (mAutoIncubating) {
                 int nextDirection = walkSimulator.getNextDirection();
-                double speedChange = Math.random() + 1.0; // limit speed to 1 to 1.5
+                double speedChange = Math.sqrt(Math.random() + 1.0); // limit speed to 1 to 1.5
                 double directionRatio = 1.0 - Math.random() / 4.0; // the ratio of the direction, limit to 0.75 ~ 1
                 mFakeLocationManager.walkPace(nextDirection, directionRatio);
                 mFakeLocationManager.setSpeed(speedChange);

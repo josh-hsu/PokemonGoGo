@@ -21,7 +21,6 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -119,10 +118,6 @@ public class HeadIconView {
 
     public TextView getTextView() {
         return (TextView) mView;
-    }
-
-    public Button getButton() {
-        return (Button) mView;
     }
 
     /*
