@@ -44,8 +44,8 @@ import java.util.ArrayList;
 public class HeadService extends Service {
     private static final String TAG = "PokemonGoGo";
     private final Handler mHandler = new Handler();
-    private Context mContext;
     private FakeLocationManager mFakeLocationManager;
+    private Context mContext;
 
     // View objects
     private WindowManager mWindowManager;
@@ -57,6 +57,7 @@ public class HeadService extends Service {
     private static final int IDX_HOME_ICON = 3;
     private static final int IDX_INCUBATOR_ICON = 4;
     private static final int IDX_SPEED_ICON = 5;
+    private static final int IDX_SNAPSHOT_ICON = 6;
     private static final int IDX_UP_BUTTON = 0;
     private static final int IDX_DOWN_BUTTON = 1;
     private static final int IDX_LEFT_BUTTON = 2;
@@ -69,6 +70,11 @@ public class HeadService extends Service {
     private boolean mAutoIncubating = false;
     private double mWalkSpeed = 1.0;
     private int mTouchHeadIconCount = 0;
+
+    // snapshot control
+    private static boolean mSnapshotTaken = false;
+    private static double mSnapLat = -1;
+    private static double mSnapLong = -1;
 
     /*
      * Runnable threads
@@ -202,6 +208,23 @@ public class HeadService extends Service {
         });
         mHeadIconList.add(speedIcon);
 
+        // Snapshot Icon
+        HeadIconView snapshotIcon = new HeadIconView(new ImageView(this), mWindowManager, 290, 85);
+        snapshotIcon.getImageView().setImageResource(R.drawable.ic_save_location);
+        snapshotIcon.setOnTapListener(new HeadIconView.OnTapListener() {
+            @Override
+            public void onTap(View view) {
+                Log.d(TAG, "config snapshot");
+                configLocationSnapshot();
+            }
+
+            @Override
+            public void onLongPress(View view) {
+
+            }
+        });
+        mHeadIconList.add(snapshotIcon);
+
         // Share the same on move listener for moving in the same time
         HeadIconView.OnMoveListener moveListener = new HeadIconView.OnMoveListener() {
             @Override
@@ -223,6 +246,7 @@ public class HeadService extends Service {
         mHeadIconList.get(IDX_HOME_ICON).setVisibility(View.INVISIBLE);
         mHeadIconList.get(IDX_INCUBATOR_ICON).setVisibility(View.INVISIBLE);
         mHeadIconList.get(IDX_SPEED_ICON).setVisibility(View.INVISIBLE);
+        mHeadIconList.get(IDX_SNAPSHOT_ICON).setVisibility(View.INVISIBLE);
     }
 
     private void initGameControlButtons() {
@@ -409,11 +433,13 @@ public class HeadService extends Service {
             mHeadIconList.get(IDX_HOME_ICON).setVisibility(View.INVISIBLE);
             mHeadIconList.get(IDX_INCUBATOR_ICON).setVisibility(View.INVISIBLE);
             mHeadIconList.get(IDX_SPEED_ICON).setVisibility(View.INVISIBLE);
+            mHeadIconList.get(IDX_SNAPSHOT_ICON).setVisibility(View.INVISIBLE);
         } else {
             mHeadIconList.get(IDX_START_ICON).setVisibility(View.VISIBLE);
             mHeadIconList.get(IDX_HOME_ICON).setVisibility(View.VISIBLE);
             mHeadIconList.get(IDX_INCUBATOR_ICON).setVisibility(View.VISIBLE);
             mHeadIconList.get(IDX_SPEED_ICON).setVisibility(View.VISIBLE);
+            mHeadIconList.get(IDX_SNAPSHOT_ICON).setVisibility(View.VISIBLE);
         }
     }
 
@@ -486,6 +512,19 @@ public class HeadService extends Service {
         } else if (mWalkSpeed == 0.7) {
             mWalkSpeed = 1.0;
             iv.setImageResource(R.drawable.ic_one);
+        }
+    }
+
+    private void configLocationSnapshot() {
+        if (!mSnapshotTaken) {
+            mSnapLat = mFakeLocationManager.getCurrentLocation().latitude;
+            mSnapLong = mFakeLocationManager.getCurrentLocation().longitude;
+            mSnapshotTaken = true;
+            mHeadIconList.get(IDX_SNAPSHOT_ICON).getImageView().setImageResource(R.drawable.ic_navigate_saved_location);
+        } else {
+            mFakeLocationManager.autoPilotTo(mSnapLat, mSnapLong, true);
+            mHeadIconList.get(IDX_SNAPSHOT_ICON).getImageView().setImageResource(R.drawable.ic_save_location);
+            mSnapshotTaken = false;
         }
     }
 

@@ -28,12 +28,16 @@ public class FakeLocationManager {
     private double mCurrentLong = 121.5642;
     private double mCurrentAlt = 10.2;
     private double mCurrentAccuracy = 6.91;
+    private double mAutoLat = -1;
+    private double mAutoLong = -1;
     private static final double mPaceLat = 0.000038;
     private static final double mPaceLong = 0.000039;
     private static double mPaceLatShift = 0.000001;
     private static double mPaceLongShift = 0.000001;
     private static double mSpeed = 1;
-    private boolean mIsEnabled;
+    private static boolean mIsEnabled;
+    private static boolean mIsAutoPilot = false;
+    private static boolean mIsAutoPilotInterruptible = true;
     public FakeLocation mDefaultLocation;
 
     public FakeLocationManager(Context context, FakeLocation defaultLoc) {
@@ -95,6 +99,10 @@ public class FakeLocationManager {
         return mIsEnabled;
     }
 
+    public FakeLocation getCurrentLocation() {
+        return new FakeLocation(mCurrentLat, mCurrentLong, mCurrentAlt, mCurrentAccuracy);
+    }
+
     private void setDefaultLocation(FakeLocation loc) {
         if (loc == null) {
             Log.e(TAG, "Cannot set default location null");
@@ -118,6 +126,14 @@ public class FakeLocationManager {
             Log.w(TAG, "Unsupported speed");
     }
 
+    public void autoPilotTo(double targetLat, double targetLong, boolean interruptible) {
+        mIsAutoPilot = true;
+        mIsAutoPilotInterruptible = interruptible;
+        mAutoLat = targetLat;
+        mAutoLong = targetLong;
+        new AutoPilotThread().start();
+    }
+
     public void walkPace(int direction, double ratio) {
         double coordinateChange;
         // must introduce random variable
@@ -127,6 +143,12 @@ public class FakeLocationManager {
         if (ratio > 1.0 || ratio < 0.0) {
             Log.e(TAG, "Unacceptable ratio " + ratio + " set to 1.0");
             ratio = 1.0;
+        }
+
+        // if auto pilot is on going, cancel it if interruptible
+        if (mIsAutoPilot && mIsAutoPilotInterruptible) {
+            Log.w(TAG, "Auto pilot is in progress, cancel auto pilot first");
+            mIsAutoPilot = false;
         }
 
         switch (direction) {
@@ -203,6 +225,7 @@ public class FakeLocationManager {
         Log.d(TAG, "RANDOM lat = " + mPaceLatShift + ", long = " + mPaceLongShift);
     }
 
+    // Setter
     private void setLatitude(double lat) {
         PropertyService.setSystemProperty(mContext.getString(R.string.property_fake_lat), ""+lat);
     }
@@ -219,4 +242,36 @@ public class FakeLocationManager {
         PropertyService.setSystemProperty(mContext.getString(R.string.property_fake_acc), ""+acc);
     }
 
+    // Threading runnable
+    private class AutoPilotThread extends Thread {
+        @Override
+        public void run() {
+            Log.d(TAG, "Start auto piloting .. ");
+            double diffLat, diffLong, incrementLat, incrementLong;
+            while(mIsAutoPilot
+                    && !(Math.abs(mCurrentLat - mAutoLat) < mPaceLat)
+                    && !(Math.abs(mCurrentLong - mAutoLong) < mPaceLong)) {
+
+                controlRandomShift();
+                diffLat = mAutoLat - mCurrentLat;
+                diffLong = mAutoLong - mCurrentLong;
+                incrementLat = (diffLat / Math.abs(diffLong + diffLat)) * (mPaceLat + mPaceLatShift) * mSpeed;
+                incrementLong = (diffLong / Math.abs(diffLong + diffLat)) * (mPaceLong + mPaceLongShift) * mSpeed;
+
+                mCurrentLong += incrementLong;
+                mCurrentLat += incrementLat;
+
+                setLongitude(mCurrentLong);
+                setLatitude(mCurrentLat);
+                setAccuracy(mCurrentAccuracy);
+
+                try {
+                    Thread.sleep(1000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            mIsAutoPilot = false;
+        }
+    };
 }
