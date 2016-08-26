@@ -221,8 +221,6 @@ public class FakeLocationManager {
 
         if (mCurrentAccuracy > 9.9 || mCurrentAccuracy < 1.5)
             mCurrentAccuracy = 5.2;
-
-        Log.d(TAG, "RANDOM lat = " + mPaceLatShift + ", long = " + mPaceLongShift);
     }
 
     // Setter
@@ -258,6 +256,12 @@ public class FakeLocationManager {
                 incrementLat = (diffLat / Math.abs(diffLong + diffLat)) * (mPaceLat + mPaceLatShift) * mSpeed;
                 incrementLong = (diffLong / Math.abs(diffLong + diffLat)) * (mPaceLong + mPaceLongShift) * mSpeed;
 
+                if (Math.abs(incrementLat) > 2 * mPaceLat * mSpeed ||
+                        Math.abs(incrementLong) > 2 * mPaceLong * mSpeed) {
+                    Log.w(TAG, "Calculate next increment of lat or long too high, abort it");
+                    break;
+                }
+
                 mCurrentLong += incrementLong;
                 mCurrentLat += incrementLat;
 
@@ -271,6 +275,7 @@ public class FakeLocationManager {
                     e.printStackTrace();
                 }
             }
+            Log.d(TAG, "Auto pilot has sent you home.");
             mIsAutoPilot = false;
         }
     };

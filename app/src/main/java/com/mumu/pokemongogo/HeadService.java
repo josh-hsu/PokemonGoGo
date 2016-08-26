@@ -484,6 +484,7 @@ public class HeadService extends Service {
             Log.d(TAG, "Start auto incubating");
             mMessageText = "Start Auto Incubating";
             mHeadIconList.get(IDX_INCUBATOR_ICON).getImageView().setImageResource(R.drawable.ic_egg_enabled);
+            mHeadIconList.get(IDX_SPEED_ICON).getImageView().setImageResource(R.drawable.ic_slow);
             mAutoIncubating = true;
             startAutoIncubating();
         }
@@ -513,6 +514,7 @@ public class HeadService extends Service {
             mWalkSpeed = 1.0;
             iv.setImageResource(R.drawable.ic_one);
         }
+        mFakeLocationManager.setSpeed(mWalkSpeed);
     }
 
     private void configLocationSnapshot() {
