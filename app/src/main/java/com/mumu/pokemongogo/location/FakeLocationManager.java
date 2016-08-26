@@ -278,5 +278,5 @@ public class FakeLocationManager {
             Log.d(TAG, "Auto pilot has sent you home.");
             mIsAutoPilot = false;
         }
-    };
+    }
 }
