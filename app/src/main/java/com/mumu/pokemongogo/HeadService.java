@@ -78,6 +78,7 @@ public class HeadService extends Service {
     private static boolean mSnapshotTaken = false;
     private static double mSnapLat = -1;
     private static double mSnapLong = -1;
+    private static LatLng mMapLocation;
 
     /*
      * Runnable threads
@@ -167,7 +168,8 @@ public class HeadService extends Service {
         homeIcon.setOnTapListener(new HeadIconView.OnTapListener() {
             @Override
             public void onTap(View view) {
-                Log.d(TAG, "config home icon");
+                Log.d(TAG, "config map icon");
+                mFakeLocationManager.cancelAutoPilot();
                 Intent mapIntent = new Intent(mContext, MapLocationViewer.class);
                 mapIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(mapIntent);
@@ -444,7 +446,9 @@ public class HeadService extends Service {
                     case ACTION_HANDLE_DATA:
                         LatLng mapLocation = intent.getParcelableExtra(EXTRA_DATA);
                         Log.d(TAG, "Service receive LAT = " + mapLocation.latitude + " and LONG = " + mapLocation.longitude);
+                        mMapLocation = mapLocation;
                         mMessageText = "Receive map location, navigating...";
+                        doMapNavigation();
                         break;
                 }
             }
@@ -554,6 +558,15 @@ public class HeadService extends Service {
             mHeadIconList.get(IDX_SNAPSHOT_ICON).getImageView().setImageResource(R.drawable.ic_save_location);
             mSnapshotTaken = false;
         }
+    }
+
+    private void doMapNavigation() {
+        if (mAutoIncubating) {
+            mMessageText = "You are incubating, cancel first";
+            configAutoIncubating();
+        }
+
+        mFakeLocationManager.autoPilotTo(mMapLocation.latitude, mMapLocation.longitude, true);
     }
 
     class GetMessageThread extends Thread {

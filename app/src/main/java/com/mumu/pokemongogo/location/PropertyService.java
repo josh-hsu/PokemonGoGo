@@ -16,18 +16,21 @@
 
 package com.mumu.pokemongogo.location;
 
+import android.os.Environment;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class PropertyService {
+    private static String DIR = "/storage/emulated/0/";
 
     public static void setSystemProperty(String property, String value) {
-        runCommandNoOutput("setprop " + property + " " + value);
+        runCommandNoOutput("echo -n " + value + " > " + DIR + property);
     }
 
     public static String getSystemProperty(String property) {
-        return runCommand("getprop " + property);
+        return runCommand("cat " + DIR + property);
     }
 
     /*

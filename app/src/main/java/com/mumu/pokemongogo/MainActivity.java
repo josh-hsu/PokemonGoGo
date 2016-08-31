@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -47,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
                 startChatHeadService();
             }
         });
+
+        Log.d(TAG, "EX: " + Environment.getExternalStorageDirectory().getPath());
     }
 
     private void startChatHeadService() {

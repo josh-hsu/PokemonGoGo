@@ -134,6 +134,10 @@ public class FakeLocationManager {
         new AutoPilotThread().start();
     }
 
+    public void cancelAutoPilot() {
+        mIsAutoPilot = false;
+    }
+
     public void walkPace(int direction, double ratio) {
         double coordinateChange;
         // must introduce random variable
