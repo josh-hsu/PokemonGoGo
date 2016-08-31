@@ -198,7 +198,10 @@ public class HeadService extends Service {
             @Override
             public void onTap(View view) {
                 Log.d(TAG, "config speed");
-                configSpeed();
+                if (!mAutoIncubating)
+                    configSpeed();
+                else
+                    mMessageText = "You can't";
             }
 
             @Override
