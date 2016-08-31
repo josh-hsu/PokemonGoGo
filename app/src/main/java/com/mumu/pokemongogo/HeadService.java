@@ -34,6 +34,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.mumu.pokemongogo.headicon.HeadIconView;
 import com.mumu.pokemongogo.location.FakeLocation;
 import com.mumu.pokemongogo.location.FakeLocationManager;
@@ -45,6 +46,8 @@ public class HeadService extends Service {
     private static final String TAG = "PokemonGoGo";
     private final Handler mHandler = new Handler();
     private FakeLocationManager mFakeLocationManager;
+    public static final String ACTION_HANDLE_DATA = "ActionLocation";
+    public static final String EXTRA_DATA = "DataLocation";
     private Context mContext;
 
     // View objects
@@ -165,6 +168,9 @@ public class HeadService extends Service {
             @Override
             public void onTap(View view) {
                 Log.d(TAG, "config home icon");
+                Intent mapIntent = new Intent(mContext, MapLocationViewer.class);
+                mapIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(mapIntent);
             }
 
             @Override
@@ -427,6 +433,23 @@ public class HeadService extends Service {
         }
 
         if (mFakeLocationManager != null) mFakeLocationManager.setEnable(false);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent != null) {
+            final String action = intent.getAction();
+            if (action != null) {
+                switch (action) {
+                    case ACTION_HANDLE_DATA:
+                        LatLng mapLocation = intent.getParcelableExtra(EXTRA_DATA);
+                        Log.d(TAG, "Service receive LAT = " + mapLocation.latitude + " and LONG = " + mapLocation.longitude);
+                        mMessageText = "Receive map location, navigating...";
+                        break;
+                }
+            }
+        }
+        return START_NOT_STICKY;
     }
 
     private void configHeadIconShowing() {
