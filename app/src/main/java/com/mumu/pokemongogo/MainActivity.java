@@ -18,6 +18,7 @@ package com.mumu.pokemongogo;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -48,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
                 startChatHeadService();
             }
         });
+
+        requestPermissions();
 
         Log.d(TAG, "EX: " + Environment.getExternalStorageDirectory().getPath());
     }
@@ -81,6 +84,33 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, R.string.startup_permit_system_alarm_failed, Toast.LENGTH_SHORT).show();
                 }
             }
+        }
+    }
+
+    private void requestPermissions() {
+        String[] perms = {"android.permission.WRITE_EXTERNAL_STORAGE"};
+        int permsRequestCode = 200;
+
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1) {
+            Log.d(TAG, "This is device software version above Marshmallow, requesting permission of external storage");
+            requestPermissions(perms, permsRequestCode);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults) {
+        switch (permsRequestCode) {
+            case 200:
+                boolean writeAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                if (writeAccepted) {
+                    Log.d(TAG, "User gave us permission to write sdcard");
+                } else {
+                    Toast.makeText(this, "User didn't give us permission to write sdcard", Toast.LENGTH_LONG).show();
+                    Log.w(TAG, "User didn't give us permission to write sdcard");
+                }
+                break;
+            default:
+                Toast.makeText(this, "No handle permission grant", Toast.LENGTH_LONG).show();
         }
     }
 }
