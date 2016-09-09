@@ -46,7 +46,8 @@ public class HeadService extends Service {
     private static final String TAG = "PokemonGoGo";
     private final Handler mHandler = new Handler();
     private FakeLocationManager mFakeLocationManager;
-    public static final String ACTION_HANDLE_DATA = "ActionLocation";
+    public static final String ACTION_HANDLE_NAVIGATION = "ActionNavigation";
+    public static final String ACTION_HANDLE_TELEPORT = "ActionTeleport";
     public static final String EXTRA_DATA = "DataLocation";
     private Context mContext;
 
@@ -67,7 +68,7 @@ public class HeadService extends Service {
     private static final int IDX_RIGHT_BUTTON = 3;
 
     // game control
-    private String mMessageText = "Now stopping";
+    private String mMessageText = "";
     private boolean mThreadStart = false;
     private boolean mFreeWalking = false;
     private boolean mAutoIncubating = false;
@@ -439,16 +440,25 @@ public class HeadService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        LatLng mapLocation;
+
         if (intent != null) {
             final String action = intent.getAction();
             if (action != null) {
                 switch (action) {
-                    case ACTION_HANDLE_DATA:
-                        LatLng mapLocation = intent.getParcelableExtra(EXTRA_DATA);
+                    case ACTION_HANDLE_NAVIGATION:
+                        mapLocation = intent.getParcelableExtra(EXTRA_DATA);
                         Log.d(TAG, "Service receive LAT = " + mapLocation.latitude + " and LONG = " + mapLocation.longitude);
                         mMapLocation = mapLocation;
-                        mMessageText = "Receive map location, navigating...";
+                        mMessageText = mContext.getString(R.string.msg_map_navigating);
                         doMapNavigation();
+                        break;
+                    case ACTION_HANDLE_TELEPORT:
+                        mapLocation = intent.getParcelableExtra(EXTRA_DATA);
+                        Log.d(TAG, "Service receive LAT = " + mapLocation.latitude + " and LONG = " + mapLocation.longitude);
+                        mMapLocation = mapLocation;
+                        mMessageText = mContext.getString(R.string.msg_map_teleporting);
+                        doMapTeleporting();
                         break;
                 }
             }
@@ -496,7 +506,6 @@ public class HeadService extends Service {
 
     private void configFreeWalking() {
         mFreeWalking = !mFreeWalking;
-        mMessageText = mFreeWalking ? "Starting service" : "Stopping service";
         mHeadIconList.get(IDX_START_ICON).getImageView().setImageResource(mFreeWalking ? R.drawable.ic_pause : R.drawable.ic_play);
 
         for (HeadIconView icon : mDirectionIconList) {
@@ -507,12 +516,12 @@ public class HeadService extends Service {
     private void configAutoIncubating() {
         if (mAutoIncubating) {
             Log.d(TAG, "Stop auto incubating");
-            mMessageText = "Stop Auto Incubating";
+            mMessageText = mContext.getString(R.string.msg_stop_incubating);
             mHeadIconList.get(IDX_INCUBATOR_ICON).getImageView().setImageResource(R.drawable.ic_egg_disabled);
             mAutoIncubating = false;
         } else {
             Log.d(TAG, "Start auto incubating");
-            mMessageText = "Start Auto Incubating";
+            mMessageText = mContext.getString(R.string.msg_start_incubating);
             mHeadIconList.get(IDX_INCUBATOR_ICON).getImageView().setImageResource(R.drawable.ic_egg_enabled);
             mHeadIconList.get(IDX_SPEED_ICON).getImageView().setImageResource(R.drawable.ic_slow);
             mAutoIncubating = true;
@@ -562,11 +571,21 @@ public class HeadService extends Service {
 
     private void doMapNavigation() {
         if (mAutoIncubating) {
-            mMessageText = "You are incubating, cancel first";
+            mMessageText = mContext.getString(R.string.msg_stop_incubating_forcely);
             configAutoIncubating();
         }
 
         mFakeLocationManager.autoPilotTo(mMapLocation.latitude, mMapLocation.longitude, true);
+    }
+
+    private void doMapTeleporting() {
+        if (mAutoIncubating) {
+            mMessageText = mContext.getString(R.string.msg_stop_incubating_forcely);
+            configAutoIncubating();
+        }
+
+        FakeLocation loc = new FakeLocation(mMapLocation.latitude, mMapLocation.longitude, 13.3122, 7.91231);
+        mFakeLocationManager.setLocation(loc);
     }
 
     class GetMessageThread extends Thread {

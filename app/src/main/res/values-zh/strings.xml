@@ -41,4 +41,16 @@
     <string name="stage_2">黃金屋</string>
     <string name="stage_3">討伐戰(實作中)</string>
     <string name="stage_4">競技場(實作中)</string>
+
+    <!-- Msg -->
+    <string name="msg_map_navigating">導航中，您可改變速度</string>
+    <string name="msg_map_teleporting">瞬間移動完成！</string>
+    <string name="msg_start_incubating">開始自動孵蛋</string>
+    <string name="msg_stop_incubating">停止自動孵蛋</string>
+    <string name="msg_stop_incubating_forcely">您正在孵蛋，停止中</string>
+    <string name="msg_no_sdcard_perms">您尚未給予存取儲存空間權限，部分功能可能有問題</string>
+    <string name="msg_map_no_point">沒有座標，長按地圖選擇點</string>
+    <string name="msg_map_cancelled">您取消導航</string>
+    <string name="msg_map_shu">咻！！！！！！</string>
+    <string name="msg_map_locating">定位在您現在位置中</string>
 </resources>

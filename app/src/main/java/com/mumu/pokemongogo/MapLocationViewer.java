@@ -81,18 +81,30 @@ public class MapLocationViewer extends AppCompatActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_finish) {
             if (mUserSelectPoint == null) {
-                Toast.makeText(this, "You didn't long press to select a point", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.msg_map_no_point), Toast.LENGTH_SHORT).show();
             } else {
                 final Intent intent = new Intent(this, HeadService.class);
-                intent.setAction(HeadService.ACTION_HANDLE_DATA);
+                intent.setAction(HeadService.ACTION_HANDLE_NAVIGATION);
                 intent.putExtra(HeadService.EXTRA_DATA, mUserSelectPoint);
                 startService(intent);
                 finish();
             }
             return true;
         } else if (id == R.id.action_cancel) {
-            Toast.makeText(this, "You cancelled navigation", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.msg_map_cancelled), Toast.LENGTH_SHORT).show();
             finish();
+            return true;
+        } else if (id == R.id.action_teleport) {
+            if (mUserSelectPoint == null) {
+                Toast.makeText(this, "You didn't long press to select a point", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, getString(R.string.msg_map_shu), Toast.LENGTH_SHORT).show();
+                final Intent intent = new Intent(this, HeadService.class);
+                intent.setAction(HeadService.ACTION_HANDLE_TELEPORT);
+                intent.putExtra(HeadService.EXTRA_DATA, mUserSelectPoint);
+                startService(intent);
+                finish();
+            }
             return true;
         }
 
@@ -125,7 +137,7 @@ public class MapLocationViewer extends AppCompatActivity
 
     @Override
     public boolean onMyLocationButtonClick() {
-        Toast.makeText(this, "Locating to your current location", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, getString(R.string.msg_map_locating), Toast.LENGTH_SHORT).show();
         // Return false so that we don't consume the event and the default behavior still occurs
         // (the camera animates to the user's current position).
         return false;

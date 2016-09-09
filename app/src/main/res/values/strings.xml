@@ -57,4 +57,17 @@
     <string name="intent_lng">lng</string>
     <string name="intent_acc">acc</string>
     <string name="intent_alt">alt</string>
+
+    <!-- Msg -->
+    <string name="msg_map_navigating">Receive map location, navigating..</string>
+    <string name="msg_map_teleporting">Receive map location, SHU --- !!!</string>
+    <string name="msg_start_incubating">Start Auto Incubating</string>
+    <string name="msg_stop_incubating">Stop Auto Incubating</string>
+    <string name="msg_stop_incubating_forcely">You are incubating, cancel first</string>
+    <string name="msg_no_sdcard_perms">User didn\'t give us permission to write sdcard</string>
+    <string name="msg_map_no_point">You didn\'t long press to select a point</string>
+    <string name="msg_map_cancelled">You cancelled navigation</string>
+    <string name="msg_map_shu">Shu ----- !!!!</string>
+    <string name="msg_map_locating">Locating to your current location</string>
+
 </resources>

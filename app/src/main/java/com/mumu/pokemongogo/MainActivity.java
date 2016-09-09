@@ -105,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
                 if (writeAccepted) {
                     Log.d(TAG, "User gave us permission to write sdcard");
                 } else {
-                    Toast.makeText(this, "User didn't give us permission to write sdcard", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, getString(R.string.msg_no_sdcard_perms), Toast.LENGTH_LONG).show();
                     Log.w(TAG, "User didn't give us permission to write sdcard");
                 }
                 break;
