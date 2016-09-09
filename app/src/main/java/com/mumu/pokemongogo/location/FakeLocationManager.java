@@ -269,8 +269,8 @@ public class FakeLocationManager {
                 incrementLat = (diffLat / Math.abs(diffLong + diffLat)) * (mPaceLat + mPaceLatShift) * mSpeed;
                 incrementLong = (diffLong / Math.abs(diffLong + diffLat)) * (mPaceLong + mPaceLongShift) * mSpeed;
 
-                if (Math.abs(incrementLat) > 2 * mPaceLat * mSpeed ||
-                        Math.abs(incrementLong) > 2 * mPaceLong * mSpeed) {
+                if (Math.abs(incrementLat) > 4 * mPaceLat * mSpeed ||
+                        Math.abs(incrementLong) > 4 * mPaceLong * mSpeed) {
                     Log.w(TAG, "Calculate next increment of lat or long too high, abort it");
                     break;
                 }
