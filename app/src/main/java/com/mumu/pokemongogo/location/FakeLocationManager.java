@@ -117,6 +117,11 @@ public class FakeLocationManager {
 
     public void setLocation(FakeLocation loc) {
         Log.d(TAG, "Set location " + loc.toString());
+        mCurrentLat = loc.latitude;
+        mCurrentLong = loc.longitude;
+        mCurrentAlt = loc.altitude;
+        mCurrentAccuracy = loc.accuracy;
+
         setLatitude(loc.latitude);
         setLongitude(loc.longitude);
         setAltitude(loc.altitude);
