@@ -50,4 +50,11 @@
     <string name="property_fake_long">persist.asus.fakegps.long</string>
     <string name="property_fake_acc">persist.asus.fakegps.acc</string>
     <string name="property_fake_alt">persist.asus.fakegps.alt</string>
+
+    <!-- Intent properties -->
+    <string name="intent_enable">enable</string>
+    <string name="intent_lat">lat</string>
+    <string name="intent_lng">lng</string>
+    <string name="intent_acc">acc</string>
+    <string name="intent_alt">alt</string>
 </resources>

@@ -16,21 +16,42 @@
 
 package com.mumu.pokemongogo.location;
 
-import android.os.Environment;
+import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class PropertyService {
-    private static String DIR = "/storage/emulated/0/";
+/*
+ * PropertyService
+ *
+ * We use intent broadcast to communicate with framework
+ * The property and value are stored in android.app.JoshProperties
+ * and LocationManager will set property based on values on JoshProperties
+ *
 
-    public static void setSystemProperty(String property, String value) {
-        runCommandNoOutput("echo -n " + value + " > " + DIR + property);
+ */
+
+public class PropertyService {
+    private final static String INTENT_ACTION = "com.mumu.pokemongogo.action.SETPROP";
+    private static final String TAG = "PokemonGoGo";
+    private Context mContext;
+
+    public PropertyService(Context context) {
+        mContext = context;
     }
 
-    public static String getSystemProperty(String property) {
-        return runCommand("cat " + DIR + property);
+    public void setSystemProperty(String intent_property, String value) {
+        Intent intent = new Intent(INTENT_ACTION);
+        intent.putExtra(intent_property, value);
+        Log.d(TAG, "SETPROP " + intent_property + " to value " + value);
+        mContext.sendBroadcast(intent);
+    }
+
+    public String getSystemProperty(String property) {
+        return runCommand("getprop " + property);
     }
 
     /*
@@ -56,19 +77,5 @@ public class PropertyService {
         }
 
         return retStr;
-    }
-
-    /*
-     * Run the specific command, you should not execute a command that will
-     * cost more than 5 seconds.
-     * This function will only execute with no output
-     */
-    public static void runCommandNoOutput(String cmdInput){
-        String[] cmd = {"/system/bin/sh", "-c", cmdInput};
-        try {
-            Runtime.getRuntime().exec(cmd);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }

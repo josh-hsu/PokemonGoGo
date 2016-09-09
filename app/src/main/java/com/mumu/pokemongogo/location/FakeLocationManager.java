@@ -39,9 +39,11 @@ public class FakeLocationManager {
     private static boolean mIsAutoPilot = false;
     private static boolean mIsAutoPilotInterruptible = true;
     public FakeLocation mDefaultLocation;
+    private PropertyService mProperty;
 
     public FakeLocationManager(Context context, FakeLocation defaultLoc) {
         mContext = context;
+        mProperty = new PropertyService(mContext);
 
         // Start fetch information from framework hacking
         boolean shouldUseLastLocation = initLastLocation();
@@ -60,10 +62,10 @@ public class FakeLocationManager {
 
     public boolean initLastLocation() {
         boolean oldDataConsist = true;
-        String enabled = PropertyService.getSystemProperty(mContext.getString(R.string.property_fake_enable));
-        String currentLat = PropertyService.getSystemProperty(mContext.getString(R.string.property_fake_lat));
-        String currentLong = PropertyService.getSystemProperty(mContext.getString(R.string.property_fake_long));
-        String currentAlt = PropertyService.getSystemProperty(mContext.getString(R.string.property_fake_alt));
+        String enabled = mProperty.getSystemProperty(mContext.getString(R.string.property_fake_enable));
+        String currentLat = mProperty.getSystemProperty(mContext.getString(R.string.property_fake_lat));
+        String currentLong = mProperty.getSystemProperty(mContext.getString(R.string.property_fake_long));
+        String currentAlt = mProperty.getSystemProperty(mContext.getString(R.string.property_fake_alt));
 
         mIsEnabled = enabled.equals("1");
 
@@ -89,9 +91,11 @@ public class FakeLocationManager {
 
     public void setEnable(boolean enable) {
         if (enable) {
-            PropertyService.setSystemProperty(mContext.getString(R.string.property_fake_enable), "1");
+            mProperty.setSystemProperty(mContext.getString(R.string.intent_enable), "1");
+            mIsEnabled = true;
         } else {
-            PropertyService.setSystemProperty(mContext.getString(R.string.property_fake_enable), "0");
+            mProperty.setSystemProperty(mContext.getString(R.string.intent_enable), "0");
+            mIsEnabled = false;
         }
     }
 
@@ -229,19 +233,19 @@ public class FakeLocationManager {
 
     // Setter
     private void setLatitude(double lat) {
-        PropertyService.setSystemProperty(mContext.getString(R.string.property_fake_lat), ""+lat);
+        mProperty.setSystemProperty(mContext.getString(R.string.intent_lat), ""+lat);
     }
 
     private void setLongitude(double lon) {
-        PropertyService.setSystemProperty(mContext.getString(R.string.property_fake_long), ""+lon);
+        mProperty.setSystemProperty(mContext.getString(R.string.intent_lng), ""+lon);
     }
 
     private void setAltitude(double alt) {
-        PropertyService.setSystemProperty(mContext.getString(R.string.property_fake_alt), ""+alt);
+        mProperty.setSystemProperty(mContext.getString(R.string.intent_alt), ""+alt);
     }
 
     private void setAccuracy(double acc) {
-        PropertyService.setSystemProperty(mContext.getString(R.string.property_fake_acc), ""+acc);
+        mProperty.setSystemProperty(mContext.getString(R.string.intent_acc), ""+acc);
     }
 
     // Threading runnable
