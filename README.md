@@ -1,9 +1,9 @@
 # PokemonGoGo
-Upper layer control app for location spoofing, this app must be signed using platform key. 
+Upper layer control app for location spoofing. 
 
 ## Framework patching
 
-```shell
+```compare
 diff --git a/services/core/java/com/android/server/JoshProperties.java b/services/core/java/com/android/server/JoshProperties.java
 new file mode 100644
 index 0000000..ad8508f
