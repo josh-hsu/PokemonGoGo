@@ -46,7 +46,6 @@ public class PropertyService {
     public void setSystemProperty(String intent_property, String value) {
         Intent intent = new Intent(INTENT_ACTION);
         intent.putExtra(intent_property, value);
-        Log.d(TAG, "SETPROP " + intent_property + " to value " + value);
         mContext.sendBroadcast(intent);
     }
 

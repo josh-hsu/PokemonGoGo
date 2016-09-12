@@ -96,7 +96,7 @@ public class MapLocationViewer extends AppCompatActivity
             return true;
         } else if (id == R.id.action_teleport) {
             if (mUserSelectPoint == null) {
-                Toast.makeText(this, "You didn't long press to select a point", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.msg_map_no_point), Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, getString(R.string.msg_map_shu), Toast.LENGTH_SHORT).show();
                 final Intent intent = new Intent(this, HeadService.class);

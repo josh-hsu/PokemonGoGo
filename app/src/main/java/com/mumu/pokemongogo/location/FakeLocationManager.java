@@ -107,6 +107,38 @@ public class FakeLocationManager {
         return new FakeLocation(mCurrentLat, mCurrentLong, mCurrentAlt, mCurrentAccuracy);
     }
 
+    /*
+     * This function check if current location is out of bound of give radius and origin
+     * returns currentDirection if not out of bound or it will return the opposite direction
+     */
+    public int getNewDirectionInBound(FakeLocation origin, double radius, int currentDirection) {
+        double northBound, eastBound, southBound, westBound;
+
+        if (origin == null) {
+            Log.e(TAG, "cannot get new direction in bound, origin is null");
+            return currentDirection;
+        }
+
+        northBound = origin.latitude + radius;
+        southBound = origin.latitude - radius;
+        eastBound = origin.longitude + radius;
+        westBound = origin.longitude - radius;
+
+        if (northBound < mCurrentLat) {
+            return FakeLocation.SOUTH;
+        } else if (southBound > mCurrentLat) {
+            return FakeLocation.NORTH;
+        }
+
+        if (eastBound < mCurrentLong) {
+            return FakeLocation.WEST;
+        } else if (westBound > mCurrentLong) {
+            return FakeLocation.EAST;
+        }
+
+        return currentDirection;
+    }
+
     private void setDefaultLocation(FakeLocation loc) {
         if (loc == null) {
             Log.e(TAG, "Cannot set default location null");
@@ -266,12 +298,14 @@ public class FakeLocationManager {
                 controlRandomShift();
                 diffLat = mAutoLat - mCurrentLat;
                 diffLong = mAutoLong - mCurrentLong;
-                incrementLat = (diffLat / Math.abs(diffLong + diffLat)) * (mPaceLat + mPaceLatShift) * mSpeed;
-                incrementLong = (diffLong / Math.abs(diffLong + diffLat)) * (mPaceLong + mPaceLongShift) * mSpeed;
+                incrementLat = (diffLat / (Math.abs(diffLong) + Math.abs(diffLat))) * (mPaceLat + mPaceLatShift) * mSpeed;
+                incrementLong = (diffLong / (Math.abs(diffLong) + Math.abs(diffLat))) * (mPaceLong + mPaceLongShift) * mSpeed;
 
-                if (Math.abs(incrementLat) > 4 * mPaceLat * mSpeed ||
-                        Math.abs(incrementLong) > 4 * mPaceLong * mSpeed) {
+                if (Math.abs(incrementLat) > 2 * mPaceLat * mSpeed ||
+                        Math.abs(incrementLong) > 2 * mPaceLong * mSpeed) {
                     Log.w(TAG, "Calculate next increment of lat or long too high, abort it");
+                    Log.w(TAG, "incrementLat = " + incrementLat + ", incrementLong = " + incrementLong);
+                    Log.w(TAG, "incrementLat bound = " + 2 * mPaceLat * mSpeed + ", incrementLong bound = " + 2 * mPaceLong * mSpeed);
                     break;
                 }
 

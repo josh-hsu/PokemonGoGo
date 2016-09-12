@@ -72,6 +72,8 @@ public class HeadService extends Service {
     private boolean mThreadStart = false;
     private boolean mFreeWalking = false;
     private boolean mAutoIncubating = false;
+    private double mAutoIncubatingRadius = 0.0005;
+    private FakeLocation mAutoIncubatingOrigin;
     private double mWalkSpeed = 1.0;
     private int mTouchHeadIconCount = 0;
 
@@ -603,20 +605,44 @@ public class HeadService extends Service {
     }
 
     void startAutoIncubating() {
+        mAutoIncubatingOrigin = mFakeLocationManager.getCurrentLocation();
         new StartAutoIncubatingThread().start();
     }
 
     class StartAutoIncubatingThread extends Thread {
         public void run() {
             HumanWalkSimulator walkSimulator = new HumanWalkSimulator();
+            int previousDirection = -1;
+            int directionCheck;
+            int directionKeep = 0;
 
             while (mAutoIncubating) {
                 int nextDirection = walkSimulator.getNextDirection();
                 double speedChange = Math.sqrt(Math.random() + 1.0); // limit speed to 1 to 1.5
                 double directionRatio = 1.0 - Math.random() / 4.0; // the ratio of the direction, limit to 0.75 ~ 1
+
+                // check if out of bound
+                if (directionKeep > 0) {
+                    directionKeep--;
+                    nextDirection = previousDirection;
+                } else {
+                    directionCheck = mFakeLocationManager.getNewDirectionInBound(mAutoIncubatingOrigin,
+                            mAutoIncubatingRadius, nextDirection);
+                    if (directionCheck != nextDirection) {
+                        Log.w(TAG, "Out of bound detected, ignoring walk simulator");
+                        nextDirection = directionCheck;
+                        directionKeep = 6;
+                    }
+                }
+
                 mFakeLocationManager.walkPace(nextDirection, directionRatio);
                 mFakeLocationManager.setSpeed(speedChange);
-                Log.d(TAG, "Now go " + nextDirection);
+
+                if (previousDirection != nextDirection) {
+                    Log.d(TAG, "Direction has changed from " + previousDirection + " to " + nextDirection);
+                    previousDirection = nextDirection;
+                }
+
                 try {
                     Thread.sleep((int)(Math.random() * 1000) + 500);
                 } catch (Exception e) {
