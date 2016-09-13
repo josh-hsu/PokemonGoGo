@@ -39,6 +39,7 @@ public class FakeLocationManager {
     private static boolean mIsAutoPilot = false;
     private static boolean mIsAutoPilotInterruptible = true;
     public FakeLocation mDefaultLocation;
+    private OnNavigationCompleteListener mOnNavigationCompleteListener = null;
     private PropertyService mProperty;
 
     public FakeLocationManager(Context context, FakeLocation defaultLoc) {
@@ -89,16 +90,6 @@ public class FakeLocationManager {
         return oldDataConsist;
     }
 
-    public void setEnable(boolean enable) {
-        if (enable) {
-            mProperty.setSystemProperty(mContext.getString(R.string.intent_enable), "1");
-            mIsEnabled = true;
-        } else {
-            mProperty.setSystemProperty(mContext.getString(R.string.intent_enable), "0");
-            mIsEnabled = false;
-        }
-    }
-
     public boolean getEnable() {
         return mIsEnabled;
     }
@@ -139,6 +130,17 @@ public class FakeLocationManager {
         return currentDirection;
     }
 
+    // Setters
+    public void setEnable(boolean enable) {
+        if (enable) {
+            mProperty.setSystemProperty(mContext.getString(R.string.intent_enable), "1");
+            mIsEnabled = true;
+        } else {
+            mProperty.setSystemProperty(mContext.getString(R.string.intent_enable), "0");
+            mIsEnabled = false;
+        }
+    }
+
     private void setDefaultLocation(FakeLocation loc) {
         if (loc == null) {
             Log.e(TAG, "Cannot set default location null");
@@ -167,6 +169,27 @@ public class FakeLocationManager {
             Log.w(TAG, "Unsupported speed");
     }
 
+    public void setOnNavigationCompleteListener(OnNavigationCompleteListener o) {
+        mOnNavigationCompleteListener = o;
+    }
+
+    private void setLatitude(double lat) {
+        mProperty.setSystemProperty(mContext.getString(R.string.intent_lat), ""+lat);
+    }
+
+    private void setLongitude(double lon) {
+        mProperty.setSystemProperty(mContext.getString(R.string.intent_lng), ""+lon);
+    }
+
+    private void setAltitude(double alt) {
+        mProperty.setSystemProperty(mContext.getString(R.string.intent_alt), ""+alt);
+    }
+
+    private void setAccuracy(double acc) {
+        mProperty.setSystemProperty(mContext.getString(R.string.intent_acc), ""+acc);
+    }
+
+    // main functions
     public void autoPilotTo(double targetLat, double targetLong, boolean interruptible) {
         mIsAutoPilot = true;
         mIsAutoPilotInterruptible = interruptible;
@@ -268,23 +291,6 @@ public class FakeLocationManager {
             mCurrentAccuracy = 5.2;
     }
 
-    // Setter
-    private void setLatitude(double lat) {
-        mProperty.setSystemProperty(mContext.getString(R.string.intent_lat), ""+lat);
-    }
-
-    private void setLongitude(double lon) {
-        mProperty.setSystemProperty(mContext.getString(R.string.intent_lng), ""+lon);
-    }
-
-    private void setAltitude(double alt) {
-        mProperty.setSystemProperty(mContext.getString(R.string.intent_alt), ""+alt);
-    }
-
-    private void setAccuracy(double acc) {
-        mProperty.setSystemProperty(mContext.getString(R.string.intent_acc), ""+acc);
-    }
-
     // Threading runnable
     private class AutoPilotThread extends Thread {
         @Override
@@ -322,8 +328,19 @@ public class FakeLocationManager {
                     e.printStackTrace();
                 }
             }
+
             Log.d(TAG, "Auto pilot has sent you home.");
+            if (mOnNavigationCompleteListener != null)
+                mOnNavigationCompleteListener.onNavigationComplete();
+
             mIsAutoPilot = false;
         }
+    }
+
+    /*
+     * Interfaces
+     */
+    public interface OnNavigationCompleteListener {
+        void onNavigationComplete();
     }
 }

@@ -39,6 +39,10 @@ public class HeadIconView {
     private static final int mInitialPositionX = 0;
     private static final int mInitialPositionY = 150;
 
+    public static final int VISIBLE = View.VISIBLE;
+    public static final int INVISIBLE = View.INVISIBLE;
+    public static final int AUTO = -1;
+
     public HeadIconView(View view, WindowManager wm, int offsetX, int offsetY) {
         if (view == null)
             return;

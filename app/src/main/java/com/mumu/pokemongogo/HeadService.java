@@ -132,7 +132,7 @@ public class HeadService extends Service {
         headIcon.setOnTapListener(new HeadIconView.OnTapListener() {
             @Override
             public void onTap(View view) {
-                configHeadIconShowing();
+                configHeadIconShowing(HeadIconView.AUTO);
             }
 
             @Override
@@ -173,6 +173,7 @@ public class HeadService extends Service {
             public void onTap(View view) {
                 Log.d(TAG, "config map icon");
                 mFakeLocationManager.cancelAutoPilot();
+                configHeadIconShowing(HeadIconView.INVISIBLE);
                 Intent mapIntent = new Intent(mContext, MapLocationViewer.class);
                 mapIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(mapIntent);
@@ -447,6 +448,8 @@ public class HeadService extends Service {
         if (intent != null) {
             final String action = intent.getAction();
             if (action != null) {
+                configHeadIconShowing(HeadIconView.VISIBLE);
+
                 switch (action) {
                     case ACTION_HANDLE_NAVIGATION:
                         mapLocation = intent.getParcelableExtra(EXTRA_DATA);
@@ -468,21 +471,26 @@ public class HeadService extends Service {
         return START_NOT_STICKY;
     }
 
-    private void configHeadIconShowing() {
+    public int getCurrentHeadIconVisibility() {
+        if (mTouchHeadIconCount % 2 == 0)
+            return HeadIconView.INVISIBLE;
+        else
+            return HeadIconView.VISIBLE;
+    }
+
+    private void configHeadIconShowing(int visible) {
+
+        // If current status is what we want, return here
+        if (getCurrentHeadIconVisibility() == visible)
+            return;
+
+        // Increase icon touch count
         mTouchHeadIconCount++;
-        if (mTouchHeadIconCount % 2 == 0) {
-            mHeadIconList.get(IDX_START_ICON).setVisibility(View.INVISIBLE);
-            mHeadIconList.get(IDX_HOME_ICON).setVisibility(View.INVISIBLE);
-            mHeadIconList.get(IDX_INCUBATOR_ICON).setVisibility(View.INVISIBLE);
-            mHeadIconList.get(IDX_SPEED_ICON).setVisibility(View.INVISIBLE);
-            mHeadIconList.get(IDX_SNAPSHOT_ICON).setVisibility(View.INVISIBLE);
-        } else {
-            mHeadIconList.get(IDX_START_ICON).setVisibility(View.VISIBLE);
-            mHeadIconList.get(IDX_HOME_ICON).setVisibility(View.VISIBLE);
-            mHeadIconList.get(IDX_INCUBATOR_ICON).setVisibility(View.VISIBLE);
-            mHeadIconList.get(IDX_SPEED_ICON).setVisibility(View.VISIBLE);
-            mHeadIconList.get(IDX_SNAPSHOT_ICON).setVisibility(View.VISIBLE);
-        }
+        mHeadIconList.get(IDX_START_ICON).setVisibility(getCurrentHeadIconVisibility());
+        mHeadIconList.get(IDX_HOME_ICON).setVisibility(getCurrentHeadIconVisibility());
+        mHeadIconList.get(IDX_INCUBATOR_ICON).setVisibility(getCurrentHeadIconVisibility());
+        mHeadIconList.get(IDX_SPEED_ICON).setVisibility(getCurrentHeadIconVisibility());
+        mHeadIconList.get(IDX_SNAPSHOT_ICON).setVisibility(getCurrentHeadIconVisibility());
     }
 
     private void showExitConfirmDialog() {
@@ -577,6 +585,12 @@ public class HeadService extends Service {
             configAutoIncubating();
         }
 
+        mFakeLocationManager.setOnNavigationCompleteListener(new FakeLocationManager.OnNavigationCompleteListener() {
+            @Override
+            public void onNavigationComplete() {
+                mMessageText = mContext.getString(R.string.msg_map_navi_done);
+            }
+        });
         mFakeLocationManager.autoPilotTo(mMapLocation.latitude, mMapLocation.longitude, true);
     }
 
@@ -586,6 +600,12 @@ public class HeadService extends Service {
             configAutoIncubating();
         }
 
+        mFakeLocationManager.setOnNavigationCompleteListener(new FakeLocationManager.OnNavigationCompleteListener() {
+            @Override
+            public void onNavigationComplete() {
+                mMessageText = mContext.getString(R.string.msg_map_navi_done);
+            }
+        });
         FakeLocation loc = new FakeLocation(mMapLocation.latitude, mMapLocation.longitude, 13.3122, 7.91231);
         mFakeLocationManager.setLocation(loc);
     }

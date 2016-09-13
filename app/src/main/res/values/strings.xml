@@ -69,5 +69,6 @@
     <string name="msg_map_cancelled">You cancelled navigation</string>
     <string name="msg_map_shu">Shu ----- !!!!</string>
     <string name="msg_map_locating">Locating to your current location</string>
+    <string name="msg_map_navi_done">Navigation completed</string>
 
 </resources>
