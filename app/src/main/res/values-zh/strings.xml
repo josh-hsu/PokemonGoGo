@@ -54,4 +54,5 @@
     <string name="msg_map_shu">咻！！！！！！</string>
     <string name="msg_map_locating">定位在您現在位置中</string>
     <string name="msg_map_navi_done">導航完成</string>
+    <string name="msg_map_drag_bar">拉動進度條選取孵蛋半徑</string>
 </resources>

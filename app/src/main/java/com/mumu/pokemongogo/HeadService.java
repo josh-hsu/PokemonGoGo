@@ -48,6 +48,7 @@ public class HeadService extends Service {
     private FakeLocationManager mFakeLocationManager;
     public static final String ACTION_HANDLE_NAVIGATION = "ActionNavigation";
     public static final String ACTION_HANDLE_TELEPORT = "ActionTeleport";
+    public static final String ACTION_HANDLE_INCUBATING = "ActionIncubating";
     public static final String EXTRA_DATA = "DataLocation";
     private Context mContext;
 
@@ -72,7 +73,7 @@ public class HeadService extends Service {
     private boolean mThreadStart = false;
     private boolean mFreeWalking = false;
     private boolean mAutoIncubating = false;
-    private double mAutoIncubatingRadius = 0.0005;
+    private double mAutoIncubatingRadius = 50; // default 50 meters
     private FakeLocation mAutoIncubatingOrigin;
     private double mWalkSpeed = 1.0;
     private int mTouchHeadIconCount = 0;
@@ -444,6 +445,7 @@ public class HeadService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         LatLng mapLocation;
+        double mapRadius;
 
         if (intent != null) {
             final String action = intent.getAction();
@@ -464,6 +466,16 @@ public class HeadService extends Service {
                         mMapLocation = mapLocation;
                         mMessageText = mContext.getString(R.string.msg_map_teleporting);
                         doMapTeleporting();
+                        break;
+                    case ACTION_HANDLE_INCUBATING:
+                        mapRadius = intent.getDoubleExtra(EXTRA_DATA, 50.0);
+                        Log.d(TAG, "Service receive Radius = " + mapRadius);
+                        mAutoIncubatingRadius = mapRadius;
+                        mMessageText = mContext.getString(R.string.msg_start_incubating);
+                        mHeadIconList.get(IDX_INCUBATOR_ICON).getImageView().setImageResource(R.drawable.ic_egg_enabled);
+                        mHeadIconList.get(IDX_SPEED_ICON).getImageView().setImageResource(R.drawable.ic_slow);
+                        mAutoIncubating = true;
+                        startAutoIncubating();
                         break;
                 }
             }
@@ -531,11 +543,11 @@ public class HeadService extends Service {
             mAutoIncubating = false;
         } else {
             Log.d(TAG, "Start auto incubating");
-            mMessageText = mContext.getString(R.string.msg_start_incubating);
-            mHeadIconList.get(IDX_INCUBATOR_ICON).getImageView().setImageResource(R.drawable.ic_egg_enabled);
-            mHeadIconList.get(IDX_SPEED_ICON).getImageView().setImageResource(R.drawable.ic_slow);
-            mAutoIncubating = true;
-            startAutoIncubating();
+            mFakeLocationManager.cancelAutoPilot();
+            configHeadIconShowing(HeadIconView.INVISIBLE);
+            Intent mapIntent = new Intent(mContext, MapAutoIncubating.class);
+            mapIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(mapIntent);
         }
     }
 
@@ -600,12 +612,6 @@ public class HeadService extends Service {
             configAutoIncubating();
         }
 
-        mFakeLocationManager.setOnNavigationCompleteListener(new FakeLocationManager.OnNavigationCompleteListener() {
-            @Override
-            public void onNavigationComplete() {
-                mMessageText = mContext.getString(R.string.msg_map_navi_done);
-            }
-        });
         FakeLocation loc = new FakeLocation(mMapLocation.latitude, mMapLocation.longitude, 13.3122, 7.91231);
         mFakeLocationManager.setLocation(loc);
     }

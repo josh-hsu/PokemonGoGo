@@ -18,7 +18,6 @@ package com.mumu.pokemongogo.location;
 
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -36,7 +35,6 @@ import java.io.InputStreamReader;
 
 public class PropertyService {
     private final static String INTENT_ACTION = "com.mumu.pokemongogo.action.SETPROP";
-    private static final String TAG = "PokemonGoGo";
     private Context mContext;
 
     public PropertyService(Context context) {
@@ -49,14 +47,13 @@ public class PropertyService {
         mContext.sendBroadcast(intent);
     }
 
-    public String getSystemProperty(String property) {
+    public static String getSystemProperty(String property) {
         return runCommand("getprop " + property);
     }
 
     /*
      * Run the specific command, you should not execute a command that will
      * cost more than 5 seconds.
-     * TODO: Add timeout design for those time consumed commands
      */
     public static String runCommand(String cmdInput){
         String retStr = "";

@@ -17,8 +17,10 @@
 package com.mumu.pokemongogo.location;
 
 import android.content.Context;
+import android.location.Location;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.mumu.pokemongogo.R;
 
 public class FakeLocationManager {
@@ -63,10 +65,10 @@ public class FakeLocationManager {
 
     public boolean initLastLocation() {
         boolean oldDataConsist = true;
-        String enabled = mProperty.getSystemProperty(mContext.getString(R.string.property_fake_enable));
-        String currentLat = mProperty.getSystemProperty(mContext.getString(R.string.property_fake_lat));
-        String currentLong = mProperty.getSystemProperty(mContext.getString(R.string.property_fake_long));
-        String currentAlt = mProperty.getSystemProperty(mContext.getString(R.string.property_fake_alt));
+        String enabled = PropertyService.getSystemProperty(mContext.getString(R.string.property_fake_enable));
+        String currentLat = PropertyService.getSystemProperty(mContext.getString(R.string.property_fake_lat));
+        String currentLong = PropertyService.getSystemProperty(mContext.getString(R.string.property_fake_long));
+        String currentAlt = PropertyService.getSystemProperty(mContext.getString(R.string.property_fake_alt));
 
         mIsEnabled = enabled.equals("1");
 
@@ -98,35 +100,60 @@ public class FakeLocationManager {
         return new FakeLocation(mCurrentLat, mCurrentLong, mCurrentAlt, mCurrentAccuracy);
     }
 
+    public static FakeLocation getCurrentLocationStatic() {
+        String currentLat = PropertyService.getSystemProperty("persist.asus.fakegps.lat");
+        String currentLong = PropertyService.getSystemProperty("persist.asus.fakegps.long");
+        double lat, lng;
+
+        if (!currentLat.equals("")) {
+            lat = Double.parseDouble(currentLat);
+        } else {
+            lat = 25.0335;
+        }
+
+        if (!currentLong.equals("")) {
+            lng = Double.parseDouble(currentLong);
+        } else {
+            lng = 121.5642;
+        }
+
+        return new FakeLocation(lat, lng, 2.0, 10.4);
+    }
+
+    public double getDistance(FakeLocation start, FakeLocation end) {
+        float[] results = new float[1];
+        Location.distanceBetween(start.latitude, start.longitude,
+                end.latitude, end.longitude, results);
+        return results[0];
+    }
+
     /*
      * This function check if current location is out of bound of give radius and origin
      * returns currentDirection if not out of bound or it will return the opposite direction
      */
     public int getNewDirectionInBound(FakeLocation origin, double radius, int currentDirection) {
-        double northBound, eastBound, southBound, westBound;
-
         if (origin == null) {
             Log.e(TAG, "cannot get new direction in bound, origin is null");
             return currentDirection;
         }
 
-        northBound = origin.latitude + radius;
-        southBound = origin.latitude - radius;
-        eastBound = origin.longitude + radius;
-        westBound = origin.longitude - radius;
+        // When we out of bound
+        double ori_lat = origin.latitude;
+        double ori_lng = origin.longitude;
 
-        if (northBound < mCurrentLat) {
-            return FakeLocation.SOUTH;
-        } else if (southBound > mCurrentLat) {
-            return FakeLocation.NORTH;
+        if (getDistance(getCurrentLocation(), origin) > radius) {
+            if ((mCurrentLat - ori_lat) > 0 && (mCurrentLong - ori_lng) > 0)
+                return FakeLocation.WESTSOUTH;
+
+            if ((mCurrentLat - ori_lat) > 0 && (mCurrentLong - ori_lng) < 0)
+                return FakeLocation.SOUTHEAST;
+
+            if ((mCurrentLat - ori_lat) < 0 && (mCurrentLong - ori_lng) > 0)
+                return FakeLocation.NORTHWEST;
+
+            if ((mCurrentLat - ori_lat) < 0 && (mCurrentLong - ori_lng) < 0)
+                return FakeLocation.EASTNORTH;
         }
-
-        if (eastBound < mCurrentLong) {
-            return FakeLocation.WEST;
-        } else if (westBound > mCurrentLong) {
-            return FakeLocation.EAST;
-        }
-
         return currentDirection;
     }
 
