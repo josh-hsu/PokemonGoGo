@@ -20,7 +20,6 @@ import android.content.Context;
 import android.location.Location;
 import android.util.Log;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.mumu.pokemongogo.R;
 
 public class FakeLocationManager {

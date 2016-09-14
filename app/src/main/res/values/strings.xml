@@ -72,4 +72,7 @@
     <string name="msg_map_navi_done">Navigation completed</string>
     <string name="msg_map_drag_bar">Drag the bar to select incubating radius</string>
 
+    <string name="map_radius">Radius = </string>
+    <string name="map_radius_unit"> meters</string>
+
 </resources>

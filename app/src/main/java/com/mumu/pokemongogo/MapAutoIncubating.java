@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -32,6 +33,7 @@ public class MapAutoIncubating extends AppCompatActivity
     private boolean mPermissionDenied = false;
     private static GoogleMap mMap;
     private static SeekBar mSeekBar;
+    private static TextView mRadiusTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +43,8 @@ public class MapAutoIncubating extends AppCompatActivity
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        mRadiusTextView = (TextView) findViewById(R.id.textViewRadius);
 
         mSeekBar = (SeekBar) findViewById(R.id.seekBar);
         mSeekBar.setEnabled(true);
@@ -60,6 +64,9 @@ public class MapAutoIncubating extends AppCompatActivity
         });
         mSeekBar.setProgress(10);
         mSeekBar.setMax(20);
+
+        String radiusText = getString(R.string.map_radius) + getRadius(20) + getString(R.string.map_radius_unit);
+        mRadiusTextView.setText(radiusText);
     }
 
     private double getRadius(int progress) {
@@ -75,6 +82,8 @@ public class MapAutoIncubating extends AppCompatActivity
                     .center(new LatLng(loc.latitude, loc.longitude))
                     .radius(radius)
                     .strokeColor(Color.RED));
+            String radiusText = getString(R.string.map_radius) + radius + getString(R.string.map_radius_unit);
+            mRadiusTextView.setText(radiusText);
         }
     }
 

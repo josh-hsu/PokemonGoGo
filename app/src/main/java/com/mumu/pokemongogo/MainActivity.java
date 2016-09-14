@@ -51,8 +51,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         requestPermissions();
-
-        Log.d(TAG, "EX: " + Environment.getExternalStorageDirectory().getPath());
     }
 
     private void startChatHeadService() {
