@@ -21,8 +21,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -65,11 +65,13 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(MainActivity.this, R.string.headservice_how_to_stop, Toast.LENGTH_SHORT).show();
                 startService(new Intent(mContext, HeadService.class));
+                finish();
             }
         } else {
             Log.d(TAG, "Permission granted, starting service.");
             Toast.makeText(MainActivity.this, R.string.headservice_how_to_stop, Toast.LENGTH_SHORT).show();
             startService(new Intent(mContext, HeadService.class));
+            finish();
         }
     }
 
@@ -96,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int permsRequestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (permsRequestCode) {
             case 200:
                 boolean writeAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;

@@ -42,7 +42,7 @@
     <string name="stage_3">討伐戰(實作中)</string>
     <string name="stage_4">競技場(實作中)</string>
 
-    <!-- Msg -->
+    <!-- Msg and Maps -->
     <string name="msg_map_navigating">導航中，您可改變速度</string>
     <string name="msg_map_teleporting">瞬間移動完成！</string>
     <string name="msg_start_incubating">開始自動孵蛋</string>
@@ -55,7 +55,14 @@
     <string name="msg_map_locating">定位在您現在位置中</string>
     <string name="msg_map_navi_done">導航完成</string>
     <string name="msg_map_drag_bar">拉動進度條選取孵蛋半徑</string>
-
     <string name="map_radius">半徑 = </string>
     <string name="map_radius_unit"> 公尺</string>
+
+    <!-- Menu -->
+    <string name="menu_cancel">取消</string>
+    <string name="menu_finish">確定</string>
+    <string name="menu_config_shape">調整形狀</string>
+    <string name="menu_teleport">瞬移</string>
+    <string name="menu_navigate">導航</string>
+
 </resources>

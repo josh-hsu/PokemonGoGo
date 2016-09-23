@@ -3,17 +3,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_config_shape"
+        android:orderInCategory="100"
+        android:icon="@drawable/ic_map_shape"
+        android:title="@string/menu_config_shape"
+        app:showAsAction="ifRoom"/>
+
+    <item
         android:id="@+id/action_finish"
         android:orderInCategory="100"
         android:icon="@drawable/ic_map_confirm"
-        android:title="Finish"
-        app:showAsAction="always"/>
+        android:title="@string/menu_finish"
+        app:showAsAction="ifRoom"/>
 
     <item
         android:id="@+id/action_cancel"
         android:orderInCategory="100"
         android:icon="@drawable/ic_map_cancel"
-        android:title="Cancel"
-        app:showAsAction="always"/>
+        android:title="@string/menu_cancel"
+        app:showAsAction="ifRoom"/>
 
 </menu>

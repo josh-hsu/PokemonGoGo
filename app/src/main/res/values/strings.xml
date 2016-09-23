@@ -58,7 +58,7 @@
     <string name="intent_acc">acc</string>
     <string name="intent_alt">alt</string>
 
-    <!-- Msg -->
+    <!-- Msg and Maps -->
     <string name="msg_map_navigating">Receive map location, navigating..</string>
     <string name="msg_map_teleporting">Receive map location, SHU --- !!!</string>
     <string name="msg_start_incubating">Start Auto Incubating</string>
@@ -71,8 +71,14 @@
     <string name="msg_map_locating">Locating to your current location</string>
     <string name="msg_map_navi_done">Navigation completed</string>
     <string name="msg_map_drag_bar">Drag the bar to select incubating radius</string>
-
     <string name="map_radius">Radius = </string>
     <string name="map_radius_unit"> meters</string>
+
+    <!-- Menu -->
+    <string name="menu_cancel">Cancel</string>
+    <string name="menu_finish">Finish</string>
+    <string name="menu_config_shape">Shape Config</string>
+    <string name="menu_teleport">Teleport</string>
+    <string name="menu_navigate">Navigate</string>
 
 </resources>

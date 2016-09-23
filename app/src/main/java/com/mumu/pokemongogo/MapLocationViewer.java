@@ -1,5 +1,6 @@
 package com.mumu.pokemongogo;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.LocationSource;
@@ -11,6 +12,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -25,32 +30,16 @@ public class MapLocationViewer extends AppCompatActivity
         implements
         OnMyLocationButtonClickListener,
         OnMapReadyCallback,
+        LocationListener,
         ActivityCompat.OnRequestPermissionsResultCallback {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final String TAG = "PokemonGoGo";
 
     private boolean mPermissionDenied = false;
-    private static GoogleMap mMap;
-    private static LatLng mUserSelectPoint = null;
+    private GoogleMap mMap;
+    private LatLng mUserSelectPoint;
     private LongPressLocationSource mLocationSource;
-
-    /**
-     * A {@link LocationSource} which reports a new location whenever a user long presses the map
-     * at the point at which a user long pressed the map.
-     */
-    private static class LongPressLocationSource implements GoogleMap.OnMapLongClickListener {
-
-        @Override
-        public void onMapLongClick(LatLng point) {
-            if (point != null) {
-                Log.d(TAG, "User hit LAT = " + point.latitude + " and LONG = " + point.longitude);
-                mUserSelectPoint = point;
-                mMap.clear();
-                mMap.addMarker(new MarkerOptions().position(mUserSelectPoint).title("Marker"));
-            }
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +47,7 @@ public class MapLocationViewer extends AppCompatActivity
         setContentView(R.layout.activity_map_location_viewer);
 
         mLocationSource = new LongPressLocationSource();
+        mUserSelectPoint = null;
 
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -112,11 +102,55 @@ public class MapLocationViewer extends AppCompatActivity
     }
 
     @Override
+    public void onLocationChanged(Location location) {
+        double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
+        LatLng latLng = new LatLng(latitude, longitude);
+        if (mMap != null) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+        }
+    }
+
+    @Override
+    public void onStatusChanged(String s, int i, Bundle bundle) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String s) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String s) {
+
+    }
+
+    /**
+     * A {@link LocationSource} which reports a new location whenever a user long presses the map
+     * at the point at which a user long pressed the map.
+     */
+    private class LongPressLocationSource implements GoogleMap.OnMapLongClickListener {
+
+        @Override
+        public void onMapLongClick(LatLng point) {
+            if (point != null) {
+                Log.d(TAG, "User hit LAT = " + point.latitude + " and LONG = " + point.longitude);
+                mUserSelectPoint = point;
+                mMap.clear();
+                mMap.addMarker(new MarkerOptions().position(mUserSelectPoint).title("Marker"));
+            }
+        }
+    }
+
+    @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
-
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMapLongClickListener(mLocationSource);
+
+        enableLocationUpdate();
         enableMyLocation();
     }
 
@@ -133,6 +167,21 @@ public class MapLocationViewer extends AppCompatActivity
             // Access to the location has been granted to the app.
             mMap.setMyLocationEnabled(true);
         }
+    }
+
+    private void enableLocationUpdate() {
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        String bestProvider = locationManager.getBestProvider(criteria, true);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        Location location = locationManager.getLastKnownLocation(bestProvider);
+        if (location != null) {
+            onLocationChanged(location);
+        }
+        locationManager.requestLocationUpdates(bestProvider, 20000, 0, this);
     }
 
     @Override
