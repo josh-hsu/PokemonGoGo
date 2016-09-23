@@ -54,9 +54,13 @@
     <string name="msg_map_shu">咻！！！！！！</string>
     <string name="msg_map_locating">定位在您現在位置中</string>
     <string name="msg_map_navi_done">導航完成</string>
+
+    <!-- Auto Incubating map view -->
     <string name="msg_map_drag_bar">拉動進度條選取孵蛋半徑</string>
     <string name="map_radius">半徑 = </string>
     <string name="map_radius_unit"> 公尺</string>
+    <string name="msg_map_rectangle_bar_1">拉動以伸展矩形</string>
+    <string name="msg_map_rectangle_bar_2">拉動調整孵蛋矩形邊長</string>
 
     <!-- Menu -->
     <string name="menu_cancel">取消</string>

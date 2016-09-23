@@ -50,9 +50,9 @@ public class MapAutoIncubating extends AppCompatActivity
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        mRadiusTextView = (TextView) findViewById(R.id.textViewRadius);
+        mRadiusTextView = (TextView) findViewById(R.id.textViewGap);
 
-        mSeekBar = (SeekBar) findViewById(R.id.seekBar);
+        mSeekBar = (SeekBar) findViewById(R.id.seekBarRadius);
         mSeekBar.setEnabled(true);
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override

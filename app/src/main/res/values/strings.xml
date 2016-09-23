@@ -70,9 +70,13 @@
     <string name="msg_map_shu">Shu ----- !!!!</string>
     <string name="msg_map_locating">Locating to your current location</string>
     <string name="msg_map_navi_done">Navigation completed</string>
+
+    <!-- Auto Incubating map view -->
     <string name="msg_map_drag_bar">Drag the bar to select incubating radius</string>
     <string name="map_radius">Radius = </string>
     <string name="map_radius_unit"> meters</string>
+    <string name="msg_map_rectangle_bar_1">Drag the bar to shrink or expand rectangle</string>
+    <string name="msg_map_rectangle_bar_2">Drag the bar to adjust size</string>
 
     <!-- Menu -->
     <string name="menu_cancel">Cancel</string>

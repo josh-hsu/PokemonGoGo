@@ -36,14 +36,13 @@ public class FakeLocationManager {
     private static double mPaceLatShift = 0.000001;
     private static double mPaceLongShift = 0.000001;
     private static double mSpeed = 1;
-    private static boolean mIsEnabled;
     private static boolean mIsAutoPilot = false;
     private static boolean mIsAutoPilotInterruptible = true;
-    public FakeLocation mDefaultLocation;
     private OnNavigationCompleteListener mOnNavigationCompleteListener = null;
     private PropertyService mProperty;
 
     public FakeLocationManager(Context context, FakeLocation defaultLoc) {
+        FakeLocation defaultLocation;
         mContext = context;
         mProperty = new PropertyService(mContext);
 
@@ -51,25 +50,22 @@ public class FakeLocationManager {
         boolean shouldUseLastLocation = initLastLocation();
 
         if (defaultLoc != null) {
-            mDefaultLocation = defaultLoc;
+            defaultLocation = defaultLoc;
         } else if (shouldUseLastLocation) {
-            mDefaultLocation = new FakeLocation(mCurrentLat, mCurrentLong, mCurrentAlt, mCurrentAccuracy);
+            defaultLocation = new FakeLocation(mCurrentLat, mCurrentLong, mCurrentAlt, mCurrentAccuracy);
         } else {
-            mDefaultLocation = new FakeLocation(25.0335, 121.5642, 10.2, 6.91); //this is the location of Taipei 101
+            defaultLocation = new FakeLocation(25.0335, 121.5642, 10.2, 6.91); //this is the location of Taipei 101
         }
 
         // Override location now, maybe in the future we should restore actual location
-        setDefaultLocation(mDefaultLocation);
+        setDefaultLocation(defaultLocation);
     }
 
-    public boolean initLastLocation() {
+    private boolean initLastLocation() {
         boolean oldDataConsist = true;
-        String enabled = PropertyService.getSystemProperty(mContext.getString(R.string.property_fake_enable));
         String currentLat = PropertyService.getSystemProperty(mContext.getString(R.string.property_fake_lat));
         String currentLong = PropertyService.getSystemProperty(mContext.getString(R.string.property_fake_long));
         String currentAlt = PropertyService.getSystemProperty(mContext.getString(R.string.property_fake_alt));
-
-        mIsEnabled = enabled.equals("1");
 
         if (!currentLat.equals("")) {
             mCurrentLat = Double.parseDouble(currentLat);
@@ -89,10 +85,6 @@ public class FakeLocationManager {
 
         Log.d(TAG, "default: lat = " + mCurrentLat + ", long = " + mCurrentLong + ", alt = " + mCurrentAlt);
         return oldDataConsist;
-    }
-
-    public boolean getEnable() {
-        return mIsEnabled;
     }
 
     public FakeLocation getCurrentLocation() {
@@ -121,9 +113,14 @@ public class FakeLocationManager {
 
     public double getDistance(FakeLocation start, FakeLocation end) {
         float[] results = new float[1];
-        Location.distanceBetween(start.latitude, start.longitude,
-                end.latitude, end.longitude, results);
-        return results[0];
+
+        if (start != null && end != null) {
+            Location.distanceBetween(start.latitude, start.longitude,
+                    end.latitude, end.longitude, results);
+            return results[0];
+        }
+
+        return 0.0;
     }
 
     /*
@@ -160,10 +157,8 @@ public class FakeLocationManager {
     public void setEnable(boolean enable) {
         if (enable) {
             mProperty.setSystemProperty(mContext.getString(R.string.intent_enable), "1");
-            mIsEnabled = true;
         } else {
             mProperty.setSystemProperty(mContext.getString(R.string.intent_enable), "0");
-            mIsEnabled = false;
         }
     }
 

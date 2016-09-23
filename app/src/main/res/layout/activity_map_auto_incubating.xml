@@ -22,13 +22,14 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/textViewRadius" />
+        android:layout_below="@+id/textViewGap"
+        android:layout_above="@+id/textViewShape" />
 
     <SeekBar
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/seekBar"
-        android:layout_below="@+id/textView2"
+        android:id="@+id/seekBarRadius"
+        android:layout_below="@+id/textViewRadius"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true" />
 
@@ -36,16 +37,41 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="    "
-        android:id="@+id/textViewRadius"
-        android:layout_below="@+id/seekBar"
+        android:id="@+id/textViewGap"
+        android:layout_below="@+id/seekBarRadius"
         android:layout_centerHorizontal="true" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textSize="20sp"
         android:text="@string/msg_map_drag_bar"
-        android:id="@+id/textView2"
+        android:id="@+id/textViewRadius"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:text="@string/msg_map_rectangle_bar_1"
+        android:textSize="20sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/seekBarShape"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/textViewShape" />
+
+    <TextView
+        android:text="    "
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/textViewGap2" />
+
+    <SeekBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/seekBarShape"
+        android:layout_above="@+id/textViewGap2"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true" />
 </RelativeLayout>
